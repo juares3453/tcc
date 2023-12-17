@@ -1,10 +1,20 @@
 import pyodbc
+import numpy as np # linear algebra
+import pandas as pd # data manipulation and analysis
+import matplotlib.pyplot as plt # data visualization
+import seaborn as sns # data visualization
+from time import time
+from sklearn import metrics
+from sklearn.cluster import KMeans
+from sklearn import preprocessing
+from sklearn.preprocessing import scale
+from sklearn.decomposition import PCA
 
 # Informações da conexão
 server = '10.0.0.14'  # Exemplo: 'localhost'
 database = 'softran_rasador'  
 username = 'softran'  
-password = 'sof1320'  
+password = 'sof1209'  
 
 # String de conexão
 conexao_str = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
@@ -19,8 +29,8 @@ def ler_sql_do_arquivo(nome_do_arquivo):
         return arquivo.read()
 
 # Lendo os comandos SQL dos arquivos
-sql_comando1 = ler_sql_do_arquivo('C:\\Users\\juare\\Desktop\\TCC\\Dados TCC.sql')
-sql_comando2 = ler_sql_do_arquivo('C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql')
+sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC.sql")
+sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
 
 # Executando os comandos
 conexao = pyodbc.connect(conexao_str)

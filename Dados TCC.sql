@@ -7,7 +7,7 @@ SELECT
 
 select 
 	DATEPART(day, data) AS Dia,
-	DATEPART(month, data) AS M�s,
+	DATEPART(month, data) AS Mes,
 	DATEPART(year, data) AS Ano,
 	Filial,
 	CASE

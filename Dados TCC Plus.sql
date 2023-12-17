@@ -70,7 +70,7 @@ SELECT
 INSERT INTO @tabela
 select 
 	DATEPART(day, data) AS Dia,
-	DATEPART(month, data) AS Mês,
+	DATEPART(month, data) AS Mes,
 	DATEPART(year, data) AS Ano,
 	B.NrPlaca,
 	C.DsTpVeiculo,
@@ -111,7 +111,7 @@ where ISDATE(Hrchegada) = 1
 and ISDATE(Hrsaida) = 1
 and KM_C <> 0 
 and KM_C > 0
-order by Ano, Mês, Dia
+order by Ano, Mes, Dia
 
 Select 
 	dia, 
