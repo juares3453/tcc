@@ -9,6 +9,7 @@ from sklearn.cluster import KMeans
 from sklearn import preprocessing
 from sklearn.preprocessing import scale
 from sklearn.decomposition import PCA
+from sqlalchemy import create_engine
 
 # Informações da conexão
 server = '10.0.0.14'  # Exemplo: 'localhost'
@@ -16,11 +17,11 @@ database = 'softran_rasador'
 username = 'softran'  
 password = 'sof1209'  
 
-# String de conexão
-conexao_str = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
+# String de conexão usando SQLAlchemy
+connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=SQL+Server'
 
-# Conexão com o banco de dados
-conexao = pyodbc.connect(conexao_str)
+# Criando o motor de conexão
+engine = create_engine(connection_str)
 
 # Comandos SQL
 # Função para ler o conteúdo SQL do arquivo
@@ -32,19 +33,42 @@ def ler_sql_do_arquivo(nome_do_arquivo):
 sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC.sql")
 sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
 
-# Executando os comandos
-conexao = pyodbc.connect(conexao_str)
-cursor = conexao.cursor()
+# Executando os comandos e lendo os dados para DataFrames
+df1 = pd.read_sql(sql_comando1, engine)
+df2 = pd.read_sql(sql_comando2, engine)
+df1_copia = pd.read_sql(sql_comando1, engine)
 
-try:
-    cursor.execute(sql_comando1)
-    resultado1 = cursor.fetchall()
-    print("Resultado 1:", resultado1)
+# Fechando a conexão
+engine.dispose()
 
-    cursor.execute(sql_comando2)
-    resultado2 = cursor.fetchall()
-    print("Resultado 2:", resultado2)
+# Exibindo os primeiros registros para verificar
+print("Resultado 1:")
+print(df1.head())
+print("\nResultado 2:")
+print(df2.head())
 
-finally:
-    cursor.close()
-    conexao.close()
+def index_of_dic(dic, key):
+    return dic[key]
+
+def StrList_to_UniqueIndexList(lista):
+    group = set(lista)
+    print(group)
+
+    dic = {}
+    i = 0
+    for g in group:
+        if g not in dic:
+            dic[g] = i
+            i += 1
+
+    print(dic)
+    return [index_of_dic(dic, p) for p in lista]
+
+# Supondo que 'df1' é o seu DataFrame
+df1['Filial'] = StrList_to_UniqueIndexList(df1['Filial'])
+
+# Exibindo as primeiras linhas dos DataFrames
+print("Dados (original):")
+print(df1_copia.head(5))  
+print("\nDados (modificado):")
+print(df1.head(5))
