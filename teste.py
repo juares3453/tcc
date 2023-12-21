@@ -37,15 +37,16 @@ sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plu
 df1 = pd.read_sql(sql_comando1, engine)
 df2 = pd.read_sql(sql_comando2, engine)
 df1_copia = pd.read_sql(sql_comando1, engine)
+df2_copia = pd.read_sql(sql_comando2, engine)
 
 # Fechando a conexão
 engine.dispose()
 
 # Exibindo os primeiros registros para verificar
-print("Resultado 1:")
-print(df1.head())
-print("\nResultado 2:")
-print(df2.head())
+# print("Resultado 1:")
+# print(df1.head())
+# print("\nResultado 2:")
+# print(df2.head())
 
 def index_of_dic(dic, key):
     return dic[key]
@@ -66,9 +67,47 @@ def StrList_to_UniqueIndexList(lista):
 
 # Supondo que 'df1' é o seu DataFrame
 df1['Filial'] = StrList_to_UniqueIndexList(df1['Filial'])
+#df2['DsModelo'] = StrList_to_UniqueIndexList(df1['DsModelo'])
 
 # Exibindo as primeiras linhas dos DataFrames
+print("Dados (Colunas):")
+print(df1.columns)
 print("Dados (original):")
 print(df1_copia.head(5))  
 print("\nDados (modificado):")
 print(df1.head(5))
+print("\nDados (Infos Variáveis):")
+print(df1.info())
+print("\Dados (Shape):")
+print(df1.shape)
+
+# Exibindo as primeiras linhas dos DataFrames
+print("Dados (Colunas):")
+print(df2.columns)
+print("Dados (original):")
+print(df2_copia.head(5))  
+print("\nDados (modificado):")
+print(df2.head(5))
+print("\nDados (Infos Variáveis):")
+print(df2.info())
+print("\nDados (Shape):")
+print(df1.shape)
+
+# # Acessando a 20ª linha do DataFrame
+# linha_20 = df1.values[19,:]
+# print("Linha 20 do DataFrame:")
+# print(linha_20)
+
+# # Acessando todos os valores da quarta coluna do DataFrame
+# coluna_4 = df1.values[:,3]
+# print("\nValores da quarta coluna do DataFrame:")
+# print(coluna_4)
+
+# Soma_distancia_quadratica = []
+# K = range(1,10)
+# for k in K:
+#     km = KMeans(n_clusters=k)
+#     km = km.fit(df1)
+#     Soma_distancia_quadratica.append(km.inertia_)
+# print('Distâncias totais:')
+# print(Soma_distancia_quadratica)

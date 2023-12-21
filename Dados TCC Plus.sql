@@ -95,7 +95,6 @@ SELECT
     C.Dia,
     C.Mes,
     C.Ano,
-    C.NrPlaca,
     C.DsTpVeiculo,
     C.DsModelo,
     C.DsAnoFabricacao,
