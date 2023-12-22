@@ -67,10 +67,9 @@ def StrList_to_UniqueIndexList(lista):
 
 # Supondo que 'df1' é o seu DataFrame
 df1['Filial'] = StrList_to_UniqueIndexList(df1['Filial'])
-#df2['DsModelo'] = StrList_to_UniqueIndexList(df1['DsModelo'])
 
 # Exibindo as primeiras linhas dos DataFrames
-print("Dados (Colunas):")
+print("\nDados (Colunas):")
 print(df1.columns)
 print("Dados (original):")
 print(df1_copia.head(5))  
@@ -78,7 +77,7 @@ print("\nDados (modificado):")
 print(df1.head(5))
 print("\nDados (Infos Variáveis):")
 print(df1.info())
-print("\Dados (Shape):")
+print("\nDados (Shape):")
 print(df1.shape)
 print("\nDados (Describe):")
 print(df1.describe())
@@ -93,10 +92,50 @@ print(df1.isnull().sum())
 df1[df1.duplicated(keep='first')]
 df1.drop_duplicates(keep='first',inplace=True)
 
+def index_of_dic1(dic1, key1):
+      return dic1[key1]
+
+def StrList_to_UniqueIndexList1(lista):
+      group = set(lista)
+      print(group)
+
+      dic1 = {}
+      i = 0
+      for g in group:
+          if g not in dic1:
+              dic1[g] = i
+              i += 1
+
+      print(dic1)
+      return [index_of_dic1(dic1, p) for p in lista]
+
+# Supondo que 'df1' é o seu DataFrame
+df2['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df2['DsTpVeiculo'])
+
+def index_of_dic2(dic2, key2):
+     return dic2[key2]
+
+def StrList_to_UniqueIndexList2(lista):
+     group = set(lista)
+     print(group)
+
+     dic2 = {}
+     i = 0
+     for g in group:
+         if g not in dic2:
+             dic2[g] = i
+             i += 1
+
+     print(dic2)
+     return [index_of_dic2(dic2, p) for p in lista]
+
+# Supondo que 'df1' é o seu DataFrame
+df2['DsModelo'] = StrList_to_UniqueIndexList2(df2['DsModelo'])
+
 # Exibindo as primeiras linhas dos DataFrames
-print("Dados (Colunas):")
+print("\nDados (Colunas):")
 print(df2.columns)
-print("Dados (original):")
+print("\nDados (original):")
 print(df2_copia.head(5))  
 print("\nDados (modificado):")
 print(df2.head(5))
@@ -106,8 +145,11 @@ print("\nDados (Shape):")
 print(df2.shape)
 print("\nDados (Describe):")
 print(df2.describe())
-print("\nDados (Describe = include 0):")
-print(df2.describe(include='O'))
+print("\nDados (Tipos):")
+print(df2.dtypes)
+# print("\nDados (Describe = include 0):")
+# print(df2.describe(include='O'))
+# Removi os dois acima pois nao temos colunas dos tipos object
 
 #Data Cleaning
 print("\nDados (Limpeza):")
