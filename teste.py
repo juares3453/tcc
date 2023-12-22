@@ -92,6 +92,13 @@ print(df1.isnull().sum())
 df1[df1.duplicated(keep='first')]
 df1.drop_duplicates(keep='first',inplace=True)
 
+plt.figure(figsize=(10,6))
+sns.distplot(df1.Filial,color='r')
+plt.title('Distribuição Filial',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('conf_carregamento',size=14)
+plt.show()
+
 def index_of_dic1(dic1, key1):
       return dic1[key1]
 
