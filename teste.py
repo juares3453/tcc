@@ -80,6 +80,18 @@ print("\nDados (Infos Variáveis):")
 print(df1.info())
 print("\Dados (Shape):")
 print(df1.shape)
+print("\nDados (Describe):")
+print(df1.describe())
+print("\nDados (Describe = include 0):")
+print(df1.describe(include='O'))
+
+#Data Cleaning
+print("\nDados (Limpeza):")
+print(df1.isnull().sum())
+
+#Data outliers
+df1[df1.duplicated(keep='first')]
+df1.drop_duplicates(keep='first',inplace=True)
 
 # Exibindo as primeiras linhas dos DataFrames
 print("Dados (Colunas):")
@@ -91,7 +103,19 @@ print(df2.head(5))
 print("\nDados (Infos Variáveis):")
 print(df2.info())
 print("\nDados (Shape):")
-print(df1.shape)
+print(df2.shape)
+print("\nDados (Describe):")
+print(df2.describe())
+print("\nDados (Describe = include 0):")
+print(df2.describe(include='O'))
+
+#Data Cleaning
+print("\nDados (Limpeza):")
+print(df2.isnull().sum())
+
+#Data outliers
+df2[df2.duplicated(keep='first')]
+df2.drop_duplicates(keep='first',inplace=True)
 
 # # Acessando a 20ª linha do DataFrame
 # linha_20 = df1.values[19,:]
