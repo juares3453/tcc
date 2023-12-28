@@ -92,6 +92,7 @@ print(df1.isnull().sum())
 df1[df1.duplicated(keep='first')]
 df1.drop_duplicates(keep='first',inplace=True)
 
+#Charges
 plt.figure(figsize=(10,6))
 sns.distplot(df1.Filial,color='r')
 plt.title('Distribuição Filial - Carregamento',size=18)
@@ -99,6 +100,21 @@ plt.xlabel('Filial',size=14)
 plt.ylabel('conf_carregamento',size=14)
 plt.show()
 
+#Age
+plt.figure(figsize=(10,6))
+sns.histplot(df1.Filial)
+plt.title('Distribuição Filial - Carregamento',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('conf_carregamento',size=14)
+plt.show()
+
+#BMI
+plt.figure(figsize=(10,6))
+plt.hist(df1.Filial,color='y')
+plt.title('Distribuição Filial',size=18)
+plt.show()
+
+#Charges
 plt.figure(figsize=(10,6))
 sns.distplot(df1.Filial,color='r')
 plt.title('Distribuição Filial - Entrega',size=18)
@@ -106,11 +122,25 @@ plt.xlabel('Filial',size=14)
 plt.ylabel('conf_entrega',size=14)
 plt.show()
 
+#Age
 plt.figure(figsize=(10,6))
-sns.distplot(df1.conf_carregamento,color='r')
-plt.title('Tempo de Conferência no carregamento',size=18)
-plt.xlabel('conf_carregamento',size=14)
-plt.ylabel('tempo_total',size=14)
+sns.histplot(df1.Filial)
+plt.title('Distribuição Filial - Entrega',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('conf_entrega',size=14)
+plt.show()
+
+#BMI
+plt.figure(figsize=(10,6))
+sns.histplot(df1.Filial)
+plt.title('Distribuição Filial - Entrega',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('conf_entrega',size=14)
+plt.show()
+
+plt.figure(figsize=(10,6))
+plt.hist(df1.conf_carregamento,color='y')
+plt.title('Distribuição Conf de carregamento',size=18)
 plt.show()
 
 plt.figure(figsize=(10,6))
@@ -133,6 +163,36 @@ plt.title('Tempo total de rodagem',size=18)
 plt.xlabel('tempo_total',size=14)
 plt.ylabel('km_total',size=14)
 plt.show()
+
+plt.figure(figsize=(10,6))
+sns.distplot(df1.tempo_total,color='r')
+plt.title('Tempo total x Auxiliares',size=18)
+plt.xlabel('tempo_total',size=14)
+plt.ylabel('auxiliares',size=14)
+plt.show()
+
+plt.figure(figsize=(10,6))
+sns.distplot(df1.tempo_total,color='r')
+plt.title('Tempo total x Capacidade',size=18)
+plt.xlabel('tempo_total',size=14)
+plt.ylabel('capacidade',size=14)
+plt.show()
+
+plt.figure(figsize=(10,6))
+sns.distplot(df1.tempo_total,color='r')
+plt.title('Tempo total de entregas',size=18)
+plt.xlabel('tempo_total',size=14)
+plt.ylabel('entregas_total',size=14)
+plt.show()
+
+plt.figure(figsize=(10,6))
+sns.distplot(df1.tempo_total,color='r')
+plt.title('Tempo total de entregas realizadas',size=18)
+plt.xlabel('tempo_total',size=14)
+plt.ylabel('entregas_realizadas',size=14)
+plt.show()
+
+
 
 
 def index_of_dic1(dic1, key1):
