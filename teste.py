@@ -92,6 +92,7 @@ print(df1.isnull().sum())
 df1[df1.duplicated(keep='first')]
 df1.drop_duplicates(keep='first',inplace=True)
 
+#Filial versus conferencia de carregamento
 #Charges
 plt.figure(figsize=(10,6))
 sns.distplot(df1.Filial,color='r')
@@ -114,6 +115,104 @@ plt.hist(df1.Filial,color='y')
 plt.title('Distribuição Filial',size=18)
 plt.show()
 
+#BMI
+plt.figure(figsize=(10,6))
+plt.hist(df1.conf_carregamento,color='y')
+plt.title('Distribuição conf_carregamento',size=18)
+plt.show()
+
+#Boxplot
+plt.figure(figsize = (10,6))
+sns.boxplot(df1.Filial)
+plt.title('Distribution Filial',size=18)
+plt.show()
+Q1 = df1['Filial'].quantile(0.25)
+Q3 = df1['Filial'].quantile(0.75)
+IQR = Q3 - Q1
+print(IQR)
+df1[(df1['Filial']< Q1-1.5* IQR) | (df1['Filial']> Q3+1.5* IQR)]
+
+#Boxplot
+plt.figure(figsize = (10,6))
+sns.boxplot(df1.conf_carregamento)
+plt.title('Distribution conf_carregamento',size=18)
+plt.show()
+Q1 = df1['conf_carregamento'].quantile(0.25)
+Q3 = df1['conf_carregamento'].quantile(0.75)
+IQR = Q3 - Q1
+print(IQR)
+df1[(df1['conf_carregamento']< Q1-1.5* IQR) | (df1['conf_carregamento']> Q3+1.5* IQR)]
+
+#Gender
+plt.figure(figsize=(10,6))
+sns.countplot(x = 'conf_carregamento', data = df1)
+plt.title('Distribution conf_carregamento',size=18)
+plt.xlabel('conf_carregamento',size=14)
+plt.show()
+
+#Gender
+plt.figure(figsize=(10,6))
+sns.countplot(x = 'Filial', data = df1)
+plt.title('Distribution Filial',size=18)
+plt.xlabel('Filial',size=14)
+plt.show()
+
+#Count
+plt.figure(figsize = (10,6))
+sns.countplot(df1.conf_carregamento)
+plt.title('Distribution conf_carregamento',size=18)
+plt.xlabel('conf_carregamento',size=14)
+plt.ylabel('Count',size=14)
+plt.show()
+
+#Count
+plt.figure(figsize = (10,6))
+sns.countplot(df1.Filial)
+plt.title('Distribution Filial',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('Count',size=14)
+plt.show()
+
+df1.Filial.value_counts()
+
+#Scatter
+plt.figure(figsize = (10,6))
+sns.scatterplot(x='Filial',y='conf_carregamento',color='r',data=df1)
+plt.title('Filial vs Conf_carregamento',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('conf_carregamento',size=14)
+plt.show()
+
+print('Correlation between Filial and Conf_carregamento is : {}'.format(round(df1.corr()['Filial']['Conf_carregamento'],3)))
+
+plt.figure(figsize = (10,6))
+sns.set_style('darkgrid')
+sns.boxplot(x='Filial',y='conf_carregamento',data=df)
+plt.title('Filial vs Conf_carregamento',size=18);
+
+#Correlation Map
+plt.figure(figsize = (10,6))
+sns.heatmap(df1.corr(),annot=True,square=True,
+            cmap='RdBu',
+            vmax=1,
+            vmin=-1)
+plt.title('Correlations Between Variables',size=18);
+plt.xticks(size=13)
+plt.yticks(size=13)
+plt.show()
+
+#Using Pairplot for Numerical Values
+sns.pairplot(df1, 
+                 markers="+",
+                 diag_kind="kde",
+                 kind='reg',
+                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
+                           'scatter_kws': {'alpha': 0.7, 
+                                           'color': 'red'}},
+                 corner=True);
+
+
+#Filial versus conferencia de entrega
 #Charges
 plt.figure(figsize=(10,6))
 sns.distplot(df1.Filial,color='r')
@@ -138,61 +237,69 @@ plt.xlabel('Filial',size=14)
 plt.ylabel('conf_entrega',size=14)
 plt.show()
 
-plt.figure(figsize=(10,6))
-plt.hist(df1.conf_carregamento,color='y')
-plt.title('Distribuição Conf de carregamento',size=18)
+#Boxplot
+plt.figure(figsize = (10,6))
+sns.boxplot(df1.Filial)
+plt.title('Distribution conf_entrega',size=18)
 plt.show()
+Q1 = df1['conf_entrega'].quantile(0.25)
+Q3 = df1['conf_entrega'].quantile(0.75)
+IQR = Q3 - Q1
+print(IQR)
+df1[(df1['conf_entrega']< Q1-1.5* IQR) | (df1['conf_entrega']> Q3+1.5* IQR)]
 
+#Gender
 plt.figure(figsize=(10,6))
-sns.distplot(df1.conf_entrega,color='r')
-plt.title('Tempo de Conferência na entrega',size=18)
+sns.countplot(x = 'Filial', data = df1)
+plt.title('Distribution Conferencia entrega',size=18)
 plt.xlabel('conf_entrega',size=14)
-plt.ylabel('tempo_total',size=14)
 plt.show()
 
-plt.figure(figsize=(10,6))
-sns.distplot(df1.conf_entrega,color='r')
-plt.title('Tempo de Conferência na entrega',size=18)
+#Count
+plt.figure(figsize = (10,6))
+sns.countplot(df1.Filial)
+plt.title('Distribution Conferencia entrega',size=18)
 plt.xlabel('conf_entrega',size=14)
-plt.ylabel('tempo_total',size=14)
+plt.ylabel('Count',size=14)
 plt.show()
 
-plt.figure(figsize=(10,6))
-sns.distplot(df1.tempo_total,color='r')
-plt.title('Tempo total de rodagem',size=18)
-plt.xlabel('tempo_total',size=14)
-plt.ylabel('km_total',size=14)
+df1.Filial.value_counts()
+
+#Scatter
+plt.figure(figsize = (10,6))
+sns.scatterplot(x='Filial',y='conf_entrega',color='r',data=df1)
+plt.title('Filial vs conf_entrega',size=18)
+plt.xlabel('Filial',size=14)
+plt.ylabel('conf_entrega',size=14)
 plt.show()
 
-plt.figure(figsize=(10,6))
-sns.distplot(df1.tempo_total,color='r')
-plt.title('Tempo total x Auxiliares',size=18)
-plt.xlabel('tempo_total',size=14)
-plt.ylabel('auxiliares',size=14)
+print('Correlation between Filial and conf_entrega is : {}'.format(round(df1.corr()['Filial']['conf_entrega'],3)))
+
+plt.figure(figsize = (10,6))
+sns.set_style('darkgrid')
+sns.boxplot(x='Filial',y='conf_entrega',data=df)
+plt.title('Filial vs conf_entrega',size=18);
+
+#Correlation Map
+plt.figure(figsize = (10,6))
+sns.heatmap(df1.corr(),annot=True,square=True,
+            cmap='RdBu',
+            vmax=1,
+            vmin=-1)
+plt.title('Correlations Between Variables',size=18);
+plt.xticks(size=13)
+plt.yticks(size=13)
 plt.show()
 
-plt.figure(figsize=(10,6))
-sns.distplot(df1.tempo_total,color='r')
-plt.title('Tempo total x Capacidade',size=18)
-plt.xlabel('tempo_total',size=14)
-plt.ylabel('capacidade',size=14)
-plt.show()
-
-plt.figure(figsize=(10,6))
-sns.distplot(df1.tempo_total,color='r')
-plt.title('Tempo total de entregas',size=18)
-plt.xlabel('tempo_total',size=14)
-plt.ylabel('entregas_total',size=14)
-plt.show()
-
-plt.figure(figsize=(10,6))
-sns.distplot(df1.tempo_total,color='r')
-plt.title('Tempo total de entregas realizadas',size=18)
-plt.xlabel('tempo_total',size=14)
-plt.ylabel('entregas_realizadas',size=14)
-plt.show()
-
-
+#Using Pairplot for Numerical Values
+sns.pairplot(df1, 
+                 markers="+",
+                 diag_kind="kde",
+                 kind='reg',
+                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
+                           'scatter_kws': {'alpha': 0.7, 
+                                           'color': 'red'}},
+                 corner=True);
 
 
 def index_of_dic1(dic1, key1):
