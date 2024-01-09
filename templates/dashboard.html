@@ -5,11 +5,24 @@
 </head>
 <body>
     <h1>Dashboard de Análise de Dados</h1>
+
+    <h2>Dados Textuais</h2>
+    <p><strong>Colunas:</strong> {{ dados_texto.colunas }}</p>
+    <p><strong>Dados Originais:</strong></p>
+    <div>{{ dados_texto.dados_originais | safe }}</div>
+    <p><strong>Informações das Variáveis:</strong></p>
+    <pre>{{ dados_texto.infos_variaveis }}</pre>
+    <p><strong>Shape:</strong> {{ dados_texto.shape }}</p>
+    <p><strong>Describe:</strong></p>
+    <div>{{ dados_texto.describe | safe }}</div>
+    <p><strong>Limpeza:</strong></p>
+    <div>{{ dados_texto.limpeza | safe }}</div>
+
+    <h2>Gráficos</h2>
     {% for nome_grafico, nome_arquivo in graficos.items() %}
         <div>
-            <h2>{{ nome_grafico }}</h2>
+            <h3>{{ nome_grafico }}</h3>
             <img src="{{ url_for('static', filename='graficos/' + nome_arquivo) }}">
-
         </div>
     {% endfor %}
 </body>
