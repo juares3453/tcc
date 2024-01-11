@@ -113,7 +113,29 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         IQR = Q3 - Q1
         plt.ylabel(IQR,size=14)
         df[(df['conf_carregamento']< Q1-1.5* IQR) | (df['conf_carregamento']> Q3+1.5* IQR)]
-        
+    elif tipo_grafico == 'countplot_carre':   
+        plt.figure(figsize=(10,6))
+        sns.countplot(x = 'conf_carregamento', data = df)
+        plt.title('Distribution conf_carregamento',size=18)
+        plt.xlabel('conf_carregamento',size=14)
+    elif tipo_grafico == 'countplot_filial':  
+        plt.figure(figsize=(10,6))
+        sns.countplot(x = 'Filial', data = df)
+        plt.title('Distribution Filial',size=18)
+        plt.xlabel('Filial',size=14)
+    elif tipo_grafico == 'countplot_fil':  
+        plt.figure(figsize = (10,6))
+        sns.countplot(df.conf_carregamento)
+        plt.title('Distribution conf_carregamento',size=18)
+        plt.xlabel('conf_carregamento',size=14)
+        plt.ylabel('Count',size=14)
+    elif tipo_grafico == 'countplot_filiall':  
+        plt.figure(figsize = (10,6))
+        sns.countplot(df.Filial)
+        plt.title('Distribution Filial',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('Count',size=14)
+
     caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
     plt.savefig(caminho_arquivo)
     plt.close()
@@ -154,7 +176,11 @@ def dashboard():
         'hist': gerar_grafico(df, 'hist', 'hist_filial'),
         'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
         'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
-        'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre')
+        'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre'),
+        'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
+        'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
+        'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
+        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall')
     }
 
     return render_template('dashboard.html', graficos=graficos, dados_texto=dados_texto)

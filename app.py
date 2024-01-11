@@ -148,11 +148,11 @@
 #df1[(df1['conf_carregamento']< Q1-1.5* IQR) | (df1['conf_carregamento']> Q3+1.5* IQR)]
 
 #Gender
-plt.figure(figsize=(10,6))
-sns.countplot(x = 'conf_carregamento', data = df1)
-plt.title('Distribution conf_carregamento',size=18)
-plt.xlabel('conf_carregamento',size=14)
-plt.show()
+#plt.figure(figsize=(10,6))
+#sns.countplot(x = 'conf_carregamento', data = df1)
+#plt.title('Distribution conf_carregamento',size=18)
+#plt.xlabel('conf_carregamento',size=14)
+#plt.show()
 
 #Gender
 plt.figure(figsize=(10,6))

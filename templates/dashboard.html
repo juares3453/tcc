@@ -17,6 +17,8 @@
     <div>{{ dados_texto.describe | safe }}</div>
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
+    <p><strong>Filial Count:</strong></p>
+    <div>{{ dados_texto.filial_count | safe }}</div>
 
     <h2>Gráficos</h2>
     {% for nome_grafico, nome_arquivo in graficos.items() %}
