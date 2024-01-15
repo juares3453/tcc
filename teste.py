@@ -30,7 +30,7 @@ def ler_sql_do_arquivo(nome_do_arquivo):
         return arquivo.read()
     
 # Lendo os comandos SQL dos arquivos
-sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
+sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC.sql")
 sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
 sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
 
@@ -203,7 +203,7 @@ def index():
 
 # Rota para visualizar o dashboard
 @teste.route('/dashboard_um')
-def dashboard():
+def dashboard_um():
     df = get_dataframe(sql_comando)
 
     #Data outliers
@@ -249,45 +249,45 @@ def dashboard():
     return render_template('dashboard_um.html', graficos=graficos, dados_texto=dados_texto)
 
 @teste.route('/dashboard_dois')
-def dashboard():
-    df = get_dataframe(sql_comando)
+def dashboard_dois():
+    df1 = get_dataframe(sql_comando1)
 
     #Data outliers
-    df[df.duplicated(keep='first')]
-    df.drop_duplicates(keep='first',inplace=True)
+    df1[df1.duplicated(keep='first')]
+    df1.drop_duplicates(keep='first',inplace=True)
 
     # Captura a saída de df.info()
     buffer = StringIO()
-    df.info(buf=buffer)
+    df1.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
 
     dados_texto = {
-        'colunas': df.columns.tolist(),
-        'dados_originais': df.head(5).to_html(classes='table'),
+        'colunas': df1.columns.tolist(),
+        'dados_originais': df1.head(5).to_html(classes='table'),
         'infos_variaveis': infos_variaveis,
-        'shape': df.shape,
-        'describe': df.describe().to_html(classes='table'),
-        'limpeza': df.isnull().sum()
+        'shape': df1.shape,
+        'describe': df1.describe().to_html(classes='table'),
+        'limpeza': df1.isnull().sum()
     }
 
     graficos = {
-        'histograma': gerar_grafico(df, 'histograma', 'histograma_filial'),
-        'boxplot': gerar_grafico(df, 'boxplot', 'boxplot_filial'),
-        'displot': gerar_grafico(df, 'displot', 'displot_filial'),
-        'hist': gerar_grafico(df, 'hist', 'hist_filial'),
-        'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
-        'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
-        'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre'),
-        'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
-        'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
-        'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
-        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
-        'scatterplot':  gerar_grafico(df, 'scatterplot', 'scatterplot'),
-        'boxplot_fc': gerar_grafico(df, 'boxplot_fc', 'boxplot_fc'),
-        'heatmap': gerar_grafico(df, 'heatmap', 'heatmap'),
-        'pairplot': gerar_grafico(df, 'pairplot', 'pairplot'),
-        'displot_filial_entrega': gerar_grafico(df, 'displot_filial_entrega', 'displot_filial_entrega'),
-        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        'histograma': gerar_grafico(df1, 'histograma', 'histograma_filial'),
+        'boxplot': gerar_grafico(df1, 'boxplot', 'boxplot_filial'),
+        'displot': gerar_grafico(df1, 'displot', 'displot_filial'),
+        'hist': gerar_grafico(df1, 'hist', 'hist_filial'),
+        'hist_car': gerar_grafico(df1, 'hist_car', 'hist_carregamento'),
+        'box_iqr': gerar_grafico(df1, 'box_iqr', 'box_filial'),
+        'box_iqr_carre': gerar_grafico(df1, 'box_iqr_carre', 'box_carre'),
+        'countplot_carre': gerar_grafico(df1, 'countplot_carre', 'countplot'),
+        'countplot_filial' : gerar_grafico(df1, 'countplot_filial', 'countplot_filial'),
+        'countplot_fil': gerar_grafico(df1, 'countplot_fil', 'countplot_fil'),
+        'countplot_filiall': gerar_grafico(df1, 'countplot_filiall', 'countplot_filiall'),
+        'scatterplot':  gerar_grafico(df1, 'scatterplot', 'scatterplot'),
+        'boxplot_fc': gerar_grafico(df1, 'boxplot_fc', 'boxplot_fc'),
+        'heatmap': gerar_grafico(df1, 'heatmap', 'heatmap'),
+        'pairplot': gerar_grafico(df1, 'pairplot', 'pairplot'),
+        'displot_filial_entrega': gerar_grafico(df1, 'displot_filial_entrega', 'displot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico(df1, 'histplot_filial_entrega', 'histplot_filial_entrega'),
         
             
     }
@@ -295,45 +295,45 @@ def dashboard():
     return render_template('dashboard_dois.html', graficos=graficos, dados_texto=dados_texto)
 
 @teste.route('/dashboard_tres')
-def dashboard():
-    df = get_dataframe(sql_comando)
+def dashboard_tres():
+    df2 = get_dataframe(sql_comando2)
 
     #Data outliers
-    df[df.duplicated(keep='first')]
-    df.drop_duplicates(keep='first',inplace=True)
+    df2[df2.duplicated(keep='first')]
+    df2.drop_duplicates(keep='first',inplace=True)
 
     # Captura a saída de df.info()
     buffer = StringIO()
-    df.info(buf=buffer)
+    df2.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
 
     dados_texto = {
-        'colunas': df.columns.tolist(),
-        'dados_originais': df.head(5).to_html(classes='table'),
+        'colunas': df2.columns.tolist(),
+        'dados_originais': df2.head(5).to_html(classes='table'),
         'infos_variaveis': infos_variaveis,
-        'shape': df.shape,
-        'describe': df.describe().to_html(classes='table'),
-        'limpeza': df.isnull().sum()
+        'shape': df2.shape,
+        'describe': df2.describe().to_html(classes='table'),
+        'limpeza': df2.isnull().sum()
     }
 
     graficos = {
-        'histograma': gerar_grafico(df, 'histograma', 'histograma_filial'),
-        'boxplot': gerar_grafico(df, 'boxplot', 'boxplot_filial'),
-        'displot': gerar_grafico(df, 'displot', 'displot_filial'),
-        'hist': gerar_grafico(df, 'hist', 'hist_filial'),
-        'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
-        'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
-        'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre'),
-        'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
-        'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
-        'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
-        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
-        'scatterplot':  gerar_grafico(df, 'scatterplot', 'scatterplot'),
-        'boxplot_fc': gerar_grafico(df, 'boxplot_fc', 'boxplot_fc'),
-        'heatmap': gerar_grafico(df, 'heatmap', 'heatmap'),
-        'pairplot': gerar_grafico(df, 'pairplot', 'pairplot'),
-        'displot_filial_entrega': gerar_grafico(df, 'displot_filial_entrega', 'displot_filial_entrega'),
-        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        'histograma': gerar_grafico(df2, 'histograma', 'histograma_filial'),
+        'boxplot': gerar_grafico(df2, 'boxplot', 'boxplot_filial'),
+        'displot': gerar_grafico(df2, 'displot', 'displot_filial'),
+        'hist': gerar_grafico(df2, 'hist', 'hist_filial'),
+        'hist_car': gerar_grafico(df2, 'hist_car', 'hist_carregamento'),
+        'box_iqr': gerar_grafico(df2, 'box_iqr', 'box_filial'),
+        'box_iqr_carre': gerar_grafico(df2, 'box_iqr_carre', 'box_carre'),
+        'countplot_carre': gerar_grafico(df2, 'countplot_carre', 'countplot'),
+        'countplot_filial' : gerar_grafico(df2, 'countplot_filial', 'countplot_filial'),
+        'countplot_fil': gerar_grafico(df2, 'countplot_fil', 'countplot_fil'),
+        'countplot_filiall': gerar_grafico(df2, 'countplot_filiall', 'countplot_filiall'),
+        'scatterplot':  gerar_grafico(df2, 'scatterplot', 'scatterplot'),
+        'boxplot_fc': gerar_grafico(df2, 'boxplot_fc', 'boxplot_fc'),
+        'heatmap': gerar_grafico(df2, 'heatmap', 'heatmap'),
+        'pairplot': gerar_grafico(df2, 'pairplot', 'pairplot'),
+        'displot_filial_entrega': gerar_grafico(df2, 'displot_filial_entrega', 'displot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico(df2, 'histplot_filial_entrega', 'histplot_filial_entrega'),
         
             
     }
