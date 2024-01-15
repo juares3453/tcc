@@ -30,8 +30,9 @@ def ler_sql_do_arquivo(nome_do_arquivo):
         return arquivo.read()
     
 # Lendo os comandos SQL dos arquivos
-sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC.sql")
+sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
 sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
+sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
 
 # Função para obter um DataFrame a partir de um comando SQL
 def get_dataframe(sql_comando):
@@ -63,6 +64,11 @@ def get_dataframe1(sql_comando1):
     with engine.connect() as conn:
         df1 = pd.read_sql(sql_comando1, conn)
     return df1
+
+def get_dataframe1(sql_comando2):
+    with engine.connect() as conn:
+        df2 = pd.read_sql(sql_comando2, conn)
+    return df2
 
 def gerar_grafico(df, tipo_grafico, nome_arquivo):
     plt.figure()  # Cria uma nova figura
@@ -135,11 +141,60 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribution Filial',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('Count',size=14)
+    elif tipo_grafico == 'scatterplot':  
+        plt.figure(figsize = (10,6))
+        sns.scatterplot(x='Filial',y='conf_carregamento',color='r',data=df)
+        plt.title('Filial vs Conf_carregamento',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_carregamento',size=14)
+    elif tipo_grafico == 'boxplot_fc':  
+        plt.figure(figsize = (10,6))
+        sns.set_style('darkgrid')
+        sns.boxplot(x='Filial',y='conf_carregamento',data=df)
+        plt.title('Filial vs Conf_carregamento',size=18);
+    elif tipo_grafico == 'heatmap':
+        plt.figure(figsize = (10,6))
+        sns.heatmap(df.corr(),annot=True,square=True,
+            cmap='RdBu',
+            vmax=1,
+            vmin=-1)
+        plt.title('Correlations Between Variables',size=18);
+        plt.xticks(size=13)
+        plt.yticks(size=13)
+    elif tipo_grafico == 'pairplot':
+        sns.pairplot(df, 
+                 markers="+",
+                 diag_kind="kde",
+                 kind='reg',
+                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
+                           'scatter_kws': {'alpha': 0.7, 
+                                           'color': 'red'}},
+                 corner=True)
+    elif tipo_grafico == 'displot_filial_entrega':
+        plt.figure(figsize=(10,6))
+        sns.distplot(df.Filial,color='r')
+        plt.title('Distribuição Filial - Entrega',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_entrega',size=14)
+    elif tipo_grafico == 'histplot_filial_entrega':
+        plt.figure(figsize=(10,6))
+        sns.histplot(df.Filial)
+        plt.title('Distribuição Filial - Entrega',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_entrega',size=14)
+    elif tipo_grafico == 'histplot_filial_entrega':
+        plt.figure(figsize=(10,6))
+        sns.histplot(df.Filial)
+        plt.title('Distribuição Filial - Entrega',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_entrega',size=14)
+    
 
     caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
     plt.savefig(caminho_arquivo)
     plt.close()
     return os.path.join(f'{nome_arquivo}.png')
+
 
 # Rota principal que renderiza a página inicial
 @teste.route('/')
@@ -147,7 +202,7 @@ def index():
     return render_template('index.html')
 
 # Rota para visualizar o dashboard
-@teste.route('/dashboard')
+@teste.route('/dashboard_um')
 def dashboard():
     df = get_dataframe(sql_comando)
 
@@ -180,10 +235,111 @@ def dashboard():
         'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
         'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
         'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
-        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall')
+        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
+        'scatterplot':  gerar_grafico(df, 'scatterplot', 'scatterplot'),
+        'boxplot_fc': gerar_grafico(df, 'boxplot_fc', 'boxplot_fc'),
+        'heatmap': gerar_grafico(df, 'heatmap', 'heatmap'),
+        'pairplot': gerar_grafico(df, 'pairplot', 'pairplot'),
+        'displot_filial_entrega': gerar_grafico(df, 'displot_filial_entrega', 'displot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        
+            
     }
 
-    return render_template('dashboard.html', graficos=graficos, dados_texto=dados_texto)
+    return render_template('dashboard_um.html', graficos=graficos, dados_texto=dados_texto)
+
+@teste.route('/dashboard_dois')
+def dashboard():
+    df = get_dataframe(sql_comando)
+
+    #Data outliers
+    df[df.duplicated(keep='first')]
+    df.drop_duplicates(keep='first',inplace=True)
+
+    # Captura a saída de df.info()
+    buffer = StringIO()
+    df.info(buf=buffer)
+    infos_variaveis = buffer.getvalue()
+
+    dados_texto = {
+        'colunas': df.columns.tolist(),
+        'dados_originais': df.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df.shape,
+        'describe': df.describe().to_html(classes='table'),
+        'limpeza': df.isnull().sum()
+    }
+
+    graficos = {
+        'histograma': gerar_grafico(df, 'histograma', 'histograma_filial'),
+        'boxplot': gerar_grafico(df, 'boxplot', 'boxplot_filial'),
+        'displot': gerar_grafico(df, 'displot', 'displot_filial'),
+        'hist': gerar_grafico(df, 'hist', 'hist_filial'),
+        'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
+        'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
+        'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre'),
+        'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
+        'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
+        'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
+        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
+        'scatterplot':  gerar_grafico(df, 'scatterplot', 'scatterplot'),
+        'boxplot_fc': gerar_grafico(df, 'boxplot_fc', 'boxplot_fc'),
+        'heatmap': gerar_grafico(df, 'heatmap', 'heatmap'),
+        'pairplot': gerar_grafico(df, 'pairplot', 'pairplot'),
+        'displot_filial_entrega': gerar_grafico(df, 'displot_filial_entrega', 'displot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        
+            
+    }
+
+    return render_template('dashboard_dois.html', graficos=graficos, dados_texto=dados_texto)
+
+@teste.route('/dashboard_tres')
+def dashboard():
+    df = get_dataframe(sql_comando)
+
+    #Data outliers
+    df[df.duplicated(keep='first')]
+    df.drop_duplicates(keep='first',inplace=True)
+
+    # Captura a saída de df.info()
+    buffer = StringIO()
+    df.info(buf=buffer)
+    infos_variaveis = buffer.getvalue()
+
+    dados_texto = {
+        'colunas': df.columns.tolist(),
+        'dados_originais': df.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df.shape,
+        'describe': df.describe().to_html(classes='table'),
+        'limpeza': df.isnull().sum()
+    }
+
+    graficos = {
+        'histograma': gerar_grafico(df, 'histograma', 'histograma_filial'),
+        'boxplot': gerar_grafico(df, 'boxplot', 'boxplot_filial'),
+        'displot': gerar_grafico(df, 'displot', 'displot_filial'),
+        'hist': gerar_grafico(df, 'hist', 'hist_filial'),
+        'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
+        'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
+        'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre'),
+        'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
+        'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
+        'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
+        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
+        'scatterplot':  gerar_grafico(df, 'scatterplot', 'scatterplot'),
+        'boxplot_fc': gerar_grafico(df, 'boxplot_fc', 'boxplot_fc'),
+        'heatmap': gerar_grafico(df, 'heatmap', 'heatmap'),
+        'pairplot': gerar_grafico(df, 'pairplot', 'pairplot'),
+        'displot_filial_entrega': gerar_grafico(df, 'displot_filial_entrega', 'displot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        
+            
+    }
+
+    return render_template('dashboard_tres.html', graficos=graficos, dados_texto=dados_texto)
+
 
 if __name__ == '__main__':
     teste.run(debug=True)

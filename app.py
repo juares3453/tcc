@@ -155,83 +155,83 @@
 #plt.show()
 
 #Gender
-plt.figure(figsize=(10,6))
-sns.countplot(x = 'Filial', data = df1)
-plt.title('Distribution Filial',size=18)
-plt.xlabel('Filial',size=14)
-plt.show()
+#plt.figure(figsize=(10,6))
+#sns.countplot(x = 'Filial', data = df1)
+#plt.title('Distribution Filial',size=18)
+#plt.xlabel('Filial',size=14)
+#plt.show()
 
 #Count
-plt.figure(figsize = (10,6))
-sns.countplot(df1.conf_carregamento)
-plt.title('Distribution conf_carregamento',size=18)
-plt.xlabel('conf_carregamento',size=14)
-plt.ylabel('Count',size=14)
-plt.show()
+#plt.figure(figsize = (10,6))
+#sns.countplot(df1.conf_carregamento)
+#plt.title('Distribution conf_carregamento',size=18)
+#plt.xlabel('conf_carregamento',size=14)
+#plt.ylabel('Count',size=14)
+#plt.show()
 
 #Count
-plt.figure(figsize = (10,6))
-sns.countplot(df1.Filial)
-plt.title('Distribution Filial',size=18)
-plt.xlabel('Filial',size=14)
-plt.ylabel('Count',size=14)
-plt.show()
+#plt.figure(figsize = (10,6))
+#sns.countplot(df1.Filial)
+#plt.title('Distribution Filial',size=18)
+#plt.xlabel('Filial',size=14)
+#plt.ylabel('Count',size=14)
+#plt.show()
 
-df1.Filial.value_counts()
+#df1.Filial.value_counts()
 
 #Scatter
-plt.figure(figsize = (10,6))
-sns.scatterplot(x='Filial',y='conf_carregamento',color='r',data=df1)
-plt.title('Filial vs Conf_carregamento',size=18)
-plt.xlabel('Filial',size=14)
-plt.ylabel('conf_carregamento',size=14)
-plt.show()
+#plt.figure(figsize = (10,6))
+#sns.scatterplot(x='Filial',y='conf_carregamento',color='r',data=df1)
+##plt.title('Filial vs Conf_carregamento',size=18)
+#p#lt.xlabel('Filial',size=14)
+#plt.ylabel('conf_carregamento',size=14)
+#plt.show()
 
 print('Correlation between Filial and Conf_carregamento is : {}'.format(round(df1.corr()['Filial']['Conf_carregamento'],3)))
 
-plt.figure(figsize = (10,6))
-sns.set_style('darkgrid')
-sns.boxplot(x='Filial',y='conf_carregamento',data=df)
-plt.title('Filial vs Conf_carregamento',size=18);
+#plt.figure(figsize = (10,6))
+#sns.set_style('darkgrid')
+#sns.boxplot(x='Filial',y='conf_carregamento',data=df)
+#plt.title('Filial vs Conf_carregamento',size=18);
 
 #Correlation Map
-plt.figure(figsize = (10,6))
-sns.heatmap(df1.corr(),annot=True,square=True,
-            cmap='RdBu',
-            vmax=1,
-            vmin=-1)
-plt.title('Correlations Between Variables',size=18);
-plt.xticks(size=13)
-plt.yticks(size=13)
-plt.show()
+#plt.figure(figsize = (10,6))
+#sns.heatmap(df1.corr(),annot=True,square=True,
+ #           cmap='RdBu',
+ #           vmax=1,
+ #           vmin=-1)
+#plt.title('Correlations Between Variables',size=18);
+#plt.xticks(size=13)
+#plt.yticks(size=13)
+#plt.show()
 
 #Using Pairplot for Numerical Values
-sns.pairplot(df1, 
-                 markers="+",
-                 diag_kind="kde",
-                 kind='reg',
-                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
-                           'scatter_kws': {'alpha': 0.7, 
-                                           'color': 'red'}},
-                 corner=True);
+#sns.pairplot(df1, 
+#                 markers="+",
+#                 diag_kind="kde",
+#                 kind='reg',
+#                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
+#                           'scatter_kws': {'alpha': 0.7, 
+#                                           'color': 'red'}},
+#                 corner=True);
 
 
 #Filial versus conferencia de entrega
 #Charges
-plt.figure(figsize=(10,6))
-sns.distplot(df1.Filial,color='r')
-plt.title('Distribuição Filial - Entrega',size=18)
-plt.xlabel('Filial',size=14)
-plt.ylabel('conf_entrega',size=14)
-plt.show()
+#plt.figure(figsize=(10,6))
+#sns.distplot(df1.Filial,color='r')
+#plt.title('Distribuição Filial - Entrega',size=18)
+#plt.xlabel('Filial',size=14)
+#plt.ylabel('conf_entrega',size=14)
+#plt.show()
 
 #Age
-plt.figure(figsize=(10,6))
-sns.histplot(df1.Filial)
-plt.title('Distribuição Filial - Entrega',size=18)
-plt.xlabel('Filial',size=14)
-plt.ylabel('conf_entrega',size=14)
-plt.show()
+#plt.figure(figsize=(10,6))
+#sns.histplot(df1.Filial)
+#plt.title('Distribuição Filial - Entrega',size=18)
+#plt.xlabel('Filial',size=14)
+#plt.ylabel('conf_entrega',size=14)
+#plt.show()
 
 #BMI
 plt.figure(figsize=(10,6))

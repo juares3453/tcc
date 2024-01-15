@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard de Análise de Dados</title>
+    <title>Dashboard de Análise de Dados do caso três</title>
 </head>
 <body>
-    <h1>Dashboard de Análise de Dados</h1>
+    <h1>Dashboard de Análise de Dados do caso três</h1>
 
     <h2>Dados Textuais</h2>
     <p><strong>Colunas:</strong> {{ dados_texto.colunas }}</p>
@@ -17,8 +17,6 @@
     <div>{{ dados_texto.describe | safe }}</div>
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
-    <p><strong>Filial Count:</strong></p>
-    <div>{{ dados_texto.filial_count | safe }}</div>
 
     <h2>Gráficos</h2>
     {% for nome_grafico, nome_arquivo in graficos.items() %}
