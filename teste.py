@@ -81,26 +81,31 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribuição Filial - Carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        plt.close()
     elif tipo_grafico == 'boxplot':
         plt.figure(figsize=(10,6))
         sns.boxplot(x='Filial', y='conf_carregamento', data=df)  
         plt.title('Distribuição Filial - Carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        plt.close()
     elif tipo_grafico == 'displot':
         plt.figure(figsize=(10,6))
         sns.distplot(df.Filial,color='r')
         plt.title('Distribuição Filial - Carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        plt.close()
     elif tipo_grafico == 'hist':
         plt.figure(figsize=(10,6))
         plt.hist(df.Filial,color='y')
-        plt.title('Distribuição Filial',size=18)   
+        plt.title('Distribuição Filial',size=18)
+        plt.close()   
     elif tipo_grafico == 'hist_car':    
         plt.figure(figsize=(10,6))
         plt.hist(df.conf_carregamento,color='y')
-        plt.title('Distribuição Conf_carregamento',size=18) 
+        plt.title('Distribuição Conf_carregamento',size=18)
+        plt.close()
     elif tipo_grafico == 'box_iqr':   
         plt.figure(figsize = (10,6))
         sns.boxplot(df.Filial)
@@ -110,6 +115,7 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         IQR = Q3 - Q1
         plt.ylabel(IQR,size=14)
         df[(df['Filial']< Q1-1.5* IQR) | (df['Filial']> Q3+1.5* IQR)]
+        plt.close()
     elif tipo_grafico == 'box_iqr_carre':   
         plt.figure(figsize = (10,6))
         sns.boxplot(df.conf_carregamento)
@@ -119,48 +125,56 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         IQR = Q3 - Q1
         plt.ylabel(IQR,size=14)
         df[(df['conf_carregamento']< Q1-1.5* IQR) | (df['conf_carregamento']> Q3+1.5* IQR)]
+        plt.close()
     elif tipo_grafico == 'countplot_carre':   
         plt.figure(figsize=(10,6))
         sns.countplot(x = 'conf_carregamento', data = df)
         plt.title('Distribution conf_carregamento',size=18)
         plt.xlabel('conf_carregamento',size=14)
+        plt.close()
     elif tipo_grafico == 'countplot_filial':  
         plt.figure(figsize=(10,6))
         sns.countplot(x = 'Filial', data = df)
         plt.title('Distribution Filial',size=18)
         plt.xlabel('Filial',size=14)
+        plt.close()
     elif tipo_grafico == 'countplot_fil':  
         plt.figure(figsize = (10,6))
         sns.countplot(df.conf_carregamento)
         plt.title('Distribution conf_carregamento',size=18)
         plt.xlabel('conf_carregamento',size=14)
         plt.ylabel('Count',size=14)
+        plt.close()
     elif tipo_grafico == 'countplot_filiall':  
         plt.figure(figsize = (10,6))
         sns.countplot(df.Filial)
         plt.title('Distribution Filial',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('Count',size=14)
+        plt.close()
     elif tipo_grafico == 'scatterplot':  
         plt.figure(figsize = (10,6))
         sns.scatterplot(x='Filial',y='conf_carregamento',color='r',data=df)
         plt.title('Filial vs Conf_carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        plt.close()
     elif tipo_grafico == 'boxplot_fc':  
         plt.figure(figsize = (10,6))
         sns.set_style('darkgrid')
         sns.boxplot(x='Filial',y='conf_carregamento',data=df)
-        plt.title('Filial vs Conf_carregamento',size=18);
+        plt.title('Filial vs Conf_carregamento',size=18)
+        plt.close()
     elif tipo_grafico == 'heatmap':
         plt.figure(figsize = (10,6))
         sns.heatmap(df.corr(),annot=True,square=True,
             cmap='RdBu',
             vmax=1,
             vmin=-1)
-        plt.title('Correlations Between Variables',size=18);
+        plt.title('Correlations Between Variables',size=18)
         plt.xticks(size=13)
         plt.yticks(size=13)
+        plt.close()
     elif tipo_grafico == 'pairplot':
         sns.pairplot(df, 
                  markers="+",
@@ -170,24 +184,28 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
                            'scatter_kws': {'alpha': 0.7, 
                                            'color': 'red'}},
                  corner=True)
+        plt.close()
     elif tipo_grafico == 'displot_filial_entrega':
         plt.figure(figsize=(10,6))
         sns.distplot(df.Filial,color='r')
         plt.title('Distribuição Filial - Entrega',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_entrega',size=14)
+        plt.close()
     elif tipo_grafico == 'histplot_filial_entrega':
         plt.figure(figsize=(10,6))
         sns.histplot(df.Filial)
         plt.title('Distribuição Filial - Entrega',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_entrega',size=14)
+        plt.close()
     elif tipo_grafico == 'histplot_filial_entrega':
         plt.figure(figsize=(10,6))
         sns.histplot(df.Filial)
         plt.title('Distribuição Filial - Entrega',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_entrega',size=14)
+        plt.close()
     
 
     caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
@@ -227,7 +245,7 @@ def dashboard_um():
     graficos = {
         'histograma': gerar_grafico(df, 'histograma', 'histograma_filial'),
         'boxplot': gerar_grafico(df, 'boxplot', 'boxplot_filial'),
-        'displot': gerar_grafico(df, 'displot', 'displot_filial'),
+        #'displot': gerar_grafico(df, 'displot', 'displot_filial'),
         'hist': gerar_grafico(df, 'hist', 'hist_filial'),
         'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
         'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
