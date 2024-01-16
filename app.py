@@ -234,12 +234,12 @@ print('Correlation between Filial and Conf_carregamento is : {}'.format(round(df
 #plt.show()
 
 #BMI
-plt.figure(figsize=(10,6))
-sns.histplot(df1.Filial)
-plt.title('Distribuição Filial - Entrega',size=18)
-plt.xlabel('Filial',size=14)
-plt.ylabel('conf_entrega',size=14)
-plt.show()
+#plt.figure(figsize=(10,6))
+#sns.histplot(df1.Filial)
+#plt.title('Distribuição Filial - Entrega',size=18)
+#plt.xlabel('Filial',size=14)
+#plt.ylabel('conf_entrega',size=14)
+#plt.show()
 
 #Boxplot
 plt.figure(figsize = (10,6))

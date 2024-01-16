@@ -30,9 +30,9 @@ def ler_sql_do_arquivo(nome_do_arquivo):
         return arquivo.read()
     
 # Lendo os comandos SQL dos arquivos
-sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC.sql")
-sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
-sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC Plus.sql")
+sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.sql")
+sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
+sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
 
 # Função para obter um DataFrame a partir de um comando SQL
 def get_dataframe(sql_comando):
@@ -63,6 +63,44 @@ def get_dataframe(sql_comando):
 def get_dataframe1(sql_comando1):
     with engine.connect() as conn:
         df1 = pd.read_sql(sql_comando1, conn)
+
+    def index_of_dic1(dic1, key1):
+        return dic1[key1]
+
+    def StrList_to_UniqueIndexList1(lista):
+        group = set(lista)
+        print(group)
+
+        dic1 = {}
+        i = 0
+        for g in group:
+             if g not in dic1:
+                dic1[g] = i
+                i += 1
+
+        print(dic1)
+        return [index_of_dic1(dic1, p) for p in lista]
+
+    df1['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df1['DsTpVeiculo'])
+
+    def index_of_dic2(dic2, key2):
+        return dic2[key2]
+
+    def StrList_to_UniqueIndexList2(lista):
+        group = set(lista)
+        print(group)
+
+        dic2 = {}
+        i = 0
+        for g in group:
+            if g not in dic2:
+                dic2[g] = i
+                i += 1
+
+        print(dic2)
+        return [index_of_dic2(dic2, p) for p in lista]
+
+    df1['DsModelo'] = StrList_to_UniqueIndexList2(df1['DsModelo'])
     return df1
 
 def get_dataframe1(sql_comando2):
@@ -81,6 +119,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribuição Filial - Carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'boxplot':
         plt.figure(figsize=(10,6))
@@ -88,6 +128,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribuição Filial - Carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'displot':
         plt.figure(figsize=(10,6))
@@ -95,16 +137,22 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribuição Filial - Carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'hist':
         plt.figure(figsize=(10,6))
         plt.hist(df.Filial,color='y')
         plt.title('Distribuição Filial',size=18)
-        plt.close()   
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
     elif tipo_grafico == 'hist_car':    
         plt.figure(figsize=(10,6))
         plt.hist(df.conf_carregamento,color='y')
         plt.title('Distribuição Conf_carregamento',size=18)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'box_iqr':   
         plt.figure(figsize = (10,6))
@@ -115,6 +163,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         IQR = Q3 - Q1
         plt.ylabel(IQR,size=14)
         df[(df['Filial']< Q1-1.5* IQR) | (df['Filial']> Q3+1.5* IQR)]
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'box_iqr_carre':   
         plt.figure(figsize = (10,6))
@@ -125,18 +175,24 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         IQR = Q3 - Q1
         plt.ylabel(IQR,size=14)
         df[(df['conf_carregamento']< Q1-1.5* IQR) | (df['conf_carregamento']> Q3+1.5* IQR)]
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'countplot_carre':   
         plt.figure(figsize=(10,6))
         sns.countplot(x = 'conf_carregamento', data = df)
         plt.title('Distribution conf_carregamento',size=18)
         plt.xlabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'countplot_filial':  
         plt.figure(figsize=(10,6))
         sns.countplot(x = 'Filial', data = df)
         plt.title('Distribution Filial',size=18)
         plt.xlabel('Filial',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'countplot_fil':  
         plt.figure(figsize = (10,6))
@@ -144,6 +200,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribution conf_carregamento',size=18)
         plt.xlabel('conf_carregamento',size=14)
         plt.ylabel('Count',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'countplot_filiall':  
         plt.figure(figsize = (10,6))
@@ -151,6 +209,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribution Filial',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('Count',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'scatterplot':  
         plt.figure(figsize = (10,6))
@@ -158,12 +218,16 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Filial vs Conf_carregamento',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'boxplot_fc':  
         plt.figure(figsize = (10,6))
         sns.set_style('darkgrid')
         sns.boxplot(x='Filial',y='conf_carregamento',data=df)
         plt.title('Filial vs Conf_carregamento',size=18)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'heatmap':
         plt.figure(figsize = (10,6))
@@ -174,6 +238,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Correlations Between Variables',size=18)
         plt.xticks(size=13)
         plt.yticks(size=13)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'pairplot':
         sns.pairplot(df, 
@@ -184,6 +250,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
                            'scatter_kws': {'alpha': 0.7, 
                                            'color': 'red'}},
                  corner=True)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'displot_filial_entrega':
         plt.figure(figsize=(10,6))
@@ -191,6 +259,8 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribuição Filial - Entrega',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_entrega',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
     elif tipo_grafico == 'histplot_filial_entrega':
         plt.figure(figsize=(10,6))
@@ -198,21 +268,215 @@ def gerar_grafico(df, tipo_grafico, nome_arquivo):
         plt.title('Distribuição Filial - Entrega',size=18)
         plt.xlabel('Filial',size=14)
         plt.ylabel('conf_entrega',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
-    elif tipo_grafico == 'histplot_filial_entrega':
+    elif tipo_grafico == 'boxplot_entrega':
+        plt.figure(figsize = (10,6))
+        sns.boxplot(df.Filial)
+        plt.title('Distribution conf_entrega',size=18)
+        Q1 = df['conf_entrega'].quantile(0.25)
+        Q3 = df['conf_entrega'].quantile(0.75)
+        IQR = Q3 - Q1
+        df[(df['conf_entrega']< Q1-1.5* IQR) | (df['conf_entrega']> Q3+1.5* IQR)]
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'boxplot_filial_entrega':
+        plt.figure(figsize = (10,6))
+        sns.boxplot(df.Filial)
+        plt.title('Distribution conf_entrega',size=18)
+        Q1 = df['conf_entrega'].quantile(0.25)
+        Q3 = df['conf_entrega'].quantile(0.75)
+        IQR = Q3 - Q1
+        df[(df['conf_entrega']< Q1-1.5* IQR) | (df['conf_entrega']> Q3+1.5* IQR)]
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'gender_entrega':
         plt.figure(figsize=(10,6))
-        sns.histplot(df.Filial)
-        plt.title('Distribuição Filial - Entrega',size=18)
-        plt.xlabel('Filial',size=14)
-        plt.ylabel('conf_entrega',size=14)
+        sns.countplot(x = 'Filial', data = df)
+        plt.title('Distribution Conferencia entrega',size=18)
+        plt.xlabel('conf_entrega',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
         plt.close()
-    
 
-    caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
-    plt.savefig(caminho_arquivo)
-    plt.close()
+
     return os.path.join(f'{nome_arquivo}.png')
 
+def gerar_grafico1(df1, tipo_grafico, nome_arquivo):
+    plt.figure()  # Cria uma nova figura
+
+    if tipo_grafico == 'histograma':
+        plt.figure(figsize=(10,6))
+        sns.histplot(df1.Filial)
+        plt.title('Distribuição Filial - Carregamento',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'boxplot':
+        plt.figure(figsize=(10,6))
+        sns.boxplot(x='Filial', y='conf_carregamento', data=df1)  
+        plt.title('Distribuição Filial - Carregamento',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'displot':
+        plt.figure(figsize=(10,6))
+        sns.distplot(df1.Filial,color='r')
+        plt.title('Distribuição Filial - Carregamento',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'hist':
+        plt.figure(figsize=(10,6))
+        plt.hist(df1.Filial,color='y')
+        plt.title('Distribuição Filial',size=18)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'hist_car':    
+        plt.figure(figsize=(10,6))
+        plt.hist(df1.conf_carregamento,color='y')
+        plt.title('Distribuição Conf_carregamento',size=18)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'box_iqr':   
+        plt.figure(figsize = (10,6))
+        sns.boxplot(df1.Filial)
+        plt.title('Distribution Filial',size=18)
+        Q1 = df11['Filial'].quantile(0.25)
+        Q3 = df1['Filial'].quantile(0.75)
+        IQR = Q3 - Q1
+        plt.ylabel(IQR,size=14)
+        df1[(df1['Filial']< Q1-1.5* IQR) | (df1['Filial']> Q3+1.5* IQR)]
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'box_iqr_carre':   
+        plt.figure(figsize = (10,6))
+        sns.boxplot(df1.conf_carregamento)
+        plt.title('Distribution conf_carregamento',size=18)
+        Q1 = df1['conf_carregamento'].quantile(0.25)
+        Q3 = df1['conf_carregamento'].quantile(0.75)
+        IQR = Q3 - Q1
+        plt.ylabel(IQR,size=14)
+        df1[(df1['conf_carregamento']< Q1-1.5* IQR) | (df1['conf_carregamento']> Q3+1.5* IQR)]
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'countplot_carre':   
+        plt.figure(figsize=(10,6))
+        sns.countplot(x = 'conf_carregamento', data = df1)
+        plt.title('Distribution conf_carregamento',size=18)
+        plt.xlabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'countplot_filial':  
+        plt.figure(figsize=(10,6))
+        sns.countplot(x = 'Filial', data = df1)
+        plt.title('Distribution Filial',size=18)
+        plt.xlabel('Filial',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'countplot_fil':  
+        plt.figure(figsize = (10,6))
+        sns.countplot(df1.conf_carregamento)
+        plt.title('Distribution conf_carregamento',size=18)
+        plt.xlabel('conf_carregamento',size=14)
+        plt.ylabel('Count',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'countplot_filiall':  
+        plt.figure(figsize = (10,6))
+        sns.countplot(df1.Filial)
+        plt.title('Distribution Filial',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('Count',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'scatterplot':  
+        plt.figure(figsize = (10,6))
+        sns.scatterplot(x='Filial',y='conf_carregamento',color='r',data=df1)
+        plt.title('Filial vs Conf_carregamento',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_carregamento',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'boxplot_fc':  
+        plt.figure(figsize = (10,6))
+        sns.set_style('darkgrid')
+        sns.boxplot(x='Filial',y='conf_carregamento',data=df1)
+        plt.title('Filial vs Conf_carregamento',size=18)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'heatmap':
+        plt.figure(figsize = (10,6))
+        sns.heatmap(df1.corr(),annot=True,square=True,
+            cmap='RdBu',
+            vmax=1,
+            vmin=-1)
+        plt.title('Correlations Between Variables',size=18)
+        plt.xticks(size=13)
+        plt.yticks(size=13)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'pairplot':
+        sns.pairplot(df1, 
+                 markers="+",
+                 diag_kind="kde",
+                 kind='reg',
+                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
+                           'scatter_kws': {'alpha': 0.7, 
+                                           'color': 'red'}},
+                 corner=True)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'displot_filial_entrega':
+        plt.figure(figsize=(10,6))
+        sns.distplot(df1.Filial,color='r')
+        plt.title('Distribuição Filial - Entrega',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_entrega',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'histplot_filial_entrega':
+        plt.figure(figsize=(10,6))
+        sns.histplot(df1.Filial)
+        plt.title('Distribuição Filial - Entrega',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_entrega',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+    elif tipo_grafico == 'histplot_filial_entrega':
+        plt.figure(figsize=(10,6))
+        sns.histplot(df1.Filial)
+        plt.title('Distribuição Filial - Entrega',size=18)
+        plt.xlabel('Filial',size=14)
+        plt.ylabel('conf_entrega',size=14)
+        caminho_arquivo = os.path.join('static', 'graficos', f'{nome_arquivo}.png')
+        plt.savefig(caminho_arquivo)
+        plt.close()
+
+    return os.path.join(f'{nome_arquivo}.png')
 
 # Rota principal que renderiza a página inicial
 @teste.route('/')
@@ -245,21 +509,21 @@ def dashboard_um():
     graficos = {
         'histograma': gerar_grafico(df, 'histograma', 'histograma_filial'),
         'boxplot': gerar_grafico(df, 'boxplot', 'boxplot_filial'),
-        #'displot': gerar_grafico(df, 'displot', 'displot_filial'),
+        'displot': gerar_grafico(df, 'displot', 'displot_filial'),
         'hist': gerar_grafico(df, 'hist', 'hist_filial'),
         'hist_car': gerar_grafico(df, 'hist_car', 'hist_carregamento'),
         'box_iqr': gerar_grafico(df, 'box_iqr', 'box_filial'),
         'box_iqr_carre': gerar_grafico(df, 'box_iqr_carre', 'box_carre'),
         'countplot_carre': gerar_grafico(df, 'countplot_carre', 'countplot'),
         'countplot_filial' : gerar_grafico(df, 'countplot_filial', 'countplot_filial'),
-        'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil'),
-        'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
+        #'countplot_fil': gerar_grafico(df, 'countplot_fil', 'countplot_fil')
+        #'countplot_filiall': gerar_grafico(df, 'countplot_filiall', 'countplot_filiall'),
         'scatterplot':  gerar_grafico(df, 'scatterplot', 'scatterplot'),
         'boxplot_fc': gerar_grafico(df, 'boxplot_fc', 'boxplot_fc'),
         'heatmap': gerar_grafico(df, 'heatmap', 'heatmap'),
-        'pairplot': gerar_grafico(df, 'pairplot', 'pairplot'),
+        #'pairplot': gerar_grafico(df, 'pairplot', 'pairplot')
         'displot_filial_entrega': gerar_grafico(df, 'displot_filial_entrega', 'displot_filial_entrega'),
-        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico(df, 'histplot_filial_entrega', 'histplot_filial_entrega')
         
             
     }
@@ -289,23 +553,23 @@ def dashboard_dois():
     }
 
     graficos = {
-        'histograma': gerar_grafico(df1, 'histograma', 'histograma_filial'),
-        'boxplot': gerar_grafico(df1, 'boxplot', 'boxplot_filial'),
-        'displot': gerar_grafico(df1, 'displot', 'displot_filial'),
-        'hist': gerar_grafico(df1, 'hist', 'hist_filial'),
-        'hist_car': gerar_grafico(df1, 'hist_car', 'hist_carregamento'),
-        'box_iqr': gerar_grafico(df1, 'box_iqr', 'box_filial'),
-        'box_iqr_carre': gerar_grafico(df1, 'box_iqr_carre', 'box_carre'),
-        'countplot_carre': gerar_grafico(df1, 'countplot_carre', 'countplot'),
-        'countplot_filial' : gerar_grafico(df1, 'countplot_filial', 'countplot_filial'),
-        'countplot_fil': gerar_grafico(df1, 'countplot_fil', 'countplot_fil'),
-        'countplot_filiall': gerar_grafico(df1, 'countplot_filiall', 'countplot_filiall'),
-        'scatterplot':  gerar_grafico(df1, 'scatterplot', 'scatterplot'),
-        'boxplot_fc': gerar_grafico(df1, 'boxplot_fc', 'boxplot_fc'),
-        'heatmap': gerar_grafico(df1, 'heatmap', 'heatmap'),
-        'pairplot': gerar_grafico(df1, 'pairplot', 'pairplot'),
-        'displot_filial_entrega': gerar_grafico(df1, 'displot_filial_entrega', 'displot_filial_entrega'),
-        'histplot_filial_entrega': gerar_grafico(df1, 'histplot_filial_entrega', 'histplot_filial_entrega'),
+        'histograma': gerar_grafico1(df1, 'histograma', 'histograma_filial'),
+        'boxplot': gerar_grafico1(df1, 'boxplot', 'boxplot_filial'),
+        'displot': gerar_grafico1(df1, 'displot', 'displot_filial'),
+        'hist': gerar_grafico1(df1, 'hist', 'hist_filial'),
+        'hist_car': gerar_grafico1(df1, 'hist_car', 'hist_carregamento'),
+        'box_iqr': gerar_grafico1(df1, 'box_iqr', 'box_filial'),
+        'box_iqr_carre': gerar_grafico1(df1, 'box_iqr_carre', 'box_carre'),
+        'countplot_carre': gerar_grafico1(df1, 'countplot_carre', 'countplot'),
+        'countplot_filial' : gerar_grafico1(df1, 'countplot_filial', 'countplot_filial'),
+        'countplot_fil': gerar_grafico1(df1, 'countplot_fil', 'countplot_fil'),
+        'countplot_filiall': gerar_grafico1(df1, 'countplot_filiall', 'countplot_filiall'),
+        'scatterplot':  gerar_grafico1(df1, 'scatterplot', 'scatterplot'),
+        'boxplot_fc': gerar_grafico1(df1, 'boxplot_fc', 'boxplot_fc'),
+        'heatmap': gerar_grafico1(df1, 'heatmap', 'heatmap'),
+        'pairplot': gerar_grafico1(df1, 'pairplot', 'pairplot'),
+        'displot_filial_entrega': gerar_grafico1(df1, 'displot_filial_entrega', 'displot_filial_entrega'),
+        'histplot_filial_entrega': gerar_grafico1(df1, 'histplot_filial_entrega', 'histplot_filial_entrega'),
         
             
     }
