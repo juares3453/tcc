@@ -242,22 +242,22 @@ print('Correlation between Filial and Conf_carregamento is : {}'.format(round(df
 #plt.show()
 
 #Boxplot
-plt.figure(figsize = (10,6))
-sns.boxplot(df1.Filial)
-plt.title('Distribution conf_entrega',size=18)
-plt.show()
-Q1 = df1['conf_entrega'].quantile(0.25)
-Q3 = df1['conf_entrega'].quantile(0.75)
-IQR = Q3 - Q1
-print(IQR)
-df1[(df1['conf_entrega']< Q1-1.5* IQR) | (df1['conf_entrega']> Q3+1.5* IQR)]
+#plt.figure(figsize = (10,6))
+#sns.boxplot(df1.Filial)
+#plt.title('Distribution conf_entrega',size=18)
+##plt.show()
+#Q1 = df1['conf_entrega'].quantile(0.25)
+#Q3 = df1['conf_entrega'].quantile(0.75)
+#IQR = Q3 - Q1
+#print(IQR)
+#df1[(df1['conf_entrega']< Q1-1.5* IQR) | (df1['conf_entrega']> Q3+1.5* IQR)]
 
 #Gender
-plt.figure(figsize=(10,6))
-sns.countplot(x = 'Filial', data = df1)
-plt.title('Distribution Conferencia entrega',size=18)
-plt.xlabel('conf_entrega',size=14)
-plt.show()
+#plt.figure(figsize=(10,6))
+#sns.countplot(x = 'Filial', data = df1)
+#plt.title('Distribution Conferencia entrega',size=18)
+##plt.xlabel('conf_entrega',size=14)
+#plt.show()
 
 #Count
 plt.figure(figsize = (10,6))
@@ -306,72 +306,72 @@ sns.pairplot(df1,
                  corner=True);
 
 
-def index_of_dic1(dic1, key1):
-      return dic1[key1]
+#def index_of_dic1(dic1, key1):
+ #     return dic1[key1]
 
-def StrList_to_UniqueIndexList1(lista):
-      group = set(lista)
-      print(group)
+#def StrList_to_UniqueIndexList1(lista):
+      #group = set(lista)
+      #print(group)#
 
-      dic1 = {}
-      i = 0
-      for g in group:
-          if g not in dic1:
-              dic1[g] = i
-              i += 1
+      #dic1 = {}
+      #i = 0
+      #for g in group:
+     #     if g not in dic1:
+    #          dic1[g] = i
+   #           i += 1
 
-      print(dic1)
-      return [index_of_dic1(dic1, p) for p in lista]
-
-# Supondo que 'df1' é o seu DataFrame
-df2['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df2['DsTpVeiculo'])
-
-def index_of_dic2(dic2, key2):
-     return dic2[key2]
-
-def StrList_to_UniqueIndexList2(lista):
-     group = set(lista)
-     print(group)
-
-     dic2 = {}
-     i = 0
-     for g in group:
-         if g not in dic2:
-             dic2[g] = i
-             i += 1
-
-     print(dic2)
-     return [index_of_dic2(dic2, p) for p in lista]
+  #    print(dic1)
+ #     return [index_of_dic1(dic1, p) for p in lista]
 
 # Supondo que 'df1' é o seu DataFrame
-df2['DsModelo'] = StrList_to_UniqueIndexList2(df2['DsModelo'])
+#df2['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df2['DsTpVeiculo'])
+
+#def index_of_dic2(dic2, key2):
+ #    return dic2[key2]
+
+#def StrList_to_UniqueIndexList2(lista):
+     #group = set(lista)
+     #print(group)
+
+    # dic2 = {}
+    # i = 0
+    # for g in group:
+     #    if g not in dic2:
+   #          dic2[g] = i
+    #         i += 1
+
+  #   print(dic2)
+ #    return [index_of_dic2(dic2, p) for p in lista]
+
+# Supondo que 'df1' é o seu DataFrame
+#df2['DsModelo'] = StrList_to_UniqueIndexList2(df2['DsModelo'])
 
 # Exibindo as primeiras linhas dos DataFrames
-print("\nDados (Colunas):")
-print(df2.columns)
-print("\nDados (original):")
-print(df2_copia.head(5))  
-print("\nDados (modificado):")
-print(df2.head(5))
-print("\nDados (Infos Variáveis):")
-print(df2.info())
-print("\nDados (Shape):")
-print(df2.shape)
-print("\nDados (Describe):")
-print(df2.describe())
-print("\nDados (Tipos):")
-print(df2.dtypes)
+#print("\nDados (Colunas):")
+#print(df2.columns)
+##print("\nDados (original):")
+#print(df2_copia.head(5))  
+#print("\nDados (modificado):")
+#print(df2.head(5))
+#print("\nDados (Infos Variáveis):")
+#print(df2.info())
+#print("\nDados (Shape):")
+#print(df2.shape)
+#print("\nDados (Describe):")
+#print(df2.describe())
+#print("\nDados (Tipos):")
+#print(df2.dtypes)
 # print("\nDados (Describe = include 0):")
 # print(df2.describe(include='O'))
 # Removi os dois acima pois nao temos colunas dos tipos object
 
 #Data Cleaning
-print("\nDados (Limpeza):")
-print(df2.isnull().sum())
+##rint("\nDados (Limpeza):")
+#print(df2.isnull().sum())
 
 #Data outliers
-df2[df2.duplicated(keep='first')]
-df2.drop_duplicates(keep='first',inplace=True)
+#df2[df2.duplicated(keep='first')]
+#df2.drop_duplicates(keep='first',inplace=True)
 
 # # Acessando a 20ª linha do DataFrame
 # linha_20 = df1.values[19,:]
