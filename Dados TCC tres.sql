@@ -1,7 +1,6 @@
 SELECT 
  A.CdEmpresaResp AS [Resp],
  CLI.CdInscricao AS [CLIENTE],
- convert(varchar(5),Month(A.DtBaixa))+'/'+convert(varchar(5), year(A.DtBaixa)) as [Compet],
  day(G.DtEmissao) as dtcte,
  month(G.DtEmissao) as mescte,
  year(G.DtEmissao) as anocte,

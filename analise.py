@@ -34,7 +34,7 @@ campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'DsModelo', 'DsAnoFabricacao', 'V
        'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
        'Lucro', '%Lucro']
 
-campos2 = ['Resp', 'CLIENTE', 'Compet','dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
+campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
  'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
 
 # Função para ler comandos SQL de um arquivo
@@ -119,8 +119,83 @@ def get_dataframe1(sql_comando1):
 def get_dataframe1(sql_comando2):
     with engine.connect() as conn:
         df2 = pd.read_sql(sql_comando2, conn)
-    return df2
 
+    def index_of_dic1(dic1, key1):
+        return dic1[key1]
+
+    def StrList_to_UniqueIndexList1(lista):
+        group = set(lista)
+        print(group)
+
+        dic1 = {}
+        i = 0
+        for g in group:
+             if g not in dic1:
+                dic1[g] = i
+                i += 1
+
+        print(dic1)
+        return [index_of_dic1(dic1, p) for p in lista]
+
+    df2['DsLocal'] = StrList_to_UniqueIndexList1(df2['DsLocal'])
+
+    def index_of_dic2(dic2, key2):
+        return dic2[key2]
+
+    def StrList_to_UniqueIndexList2(lista):
+        group = set(lista)
+        print(group)
+
+        dic2 = {}
+        i = 0
+        for g in group:
+            if g not in dic2:
+                dic2[g] = i
+                i += 1
+
+        print(dic2)
+        return [index_of_dic2(dic2, p) for p in lista]
+
+    df2['tp_ocor'] = StrList_to_UniqueIndexList2(df2['tp_ocor'])
+
+    def index_of_dic3(dic3, key3):
+        return dic3[key3]
+
+    def StrList_to_UniqueIndexList3(lista):
+        group = set(lista)
+        print(group)
+
+        dic3 = {}
+        i = 0
+        for g in group:
+            if g not in dic3:
+                dic3[g] = i
+                i += 1
+
+        print(dic3)
+        return [index_of_dic3(dic3, p) for p in lista]
+
+    df2['Situacao'] = StrList_to_UniqueIndexList3(df2['Situacao'])
+
+    def index_of_dic4(dic4, key4):
+        return dic4[key4]
+
+    def StrList_to_UniqueIndexList4(lista):
+        group = set(lista)
+        print(group)
+
+        dic4 = {}
+        i = 0
+        for g in group:
+            if g not in dic4:
+                dic4[g] = i
+                i += 1
+
+        print(dic4)
+        return [index_of_dic4(dic4, p) for p in lista]
+
+    df2['dsocorrencia'] = StrList_to_UniqueIndexList4(df2['dsocorrencia'])
+    return df2
 
 # Função para gerar e salvar gráficos
 def gerar_e_salvar_graficos(df):
