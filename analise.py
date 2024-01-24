@@ -47,6 +47,8 @@ sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.s
 sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
 sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
 
+
+
 # Função para obter um DataFrame a partir de um comando SQL
 def get_dataframe(sql_comando):
     with engine.connect() as conn:
@@ -57,7 +59,6 @@ def get_dataframe(sql_comando):
 
     def StrList_to_UniqueIndexList(lista):
         group = set(lista)
-        print(group)
 
         dic = {}
         i = 0
@@ -66,7 +67,6 @@ def get_dataframe(sql_comando):
                 dic[g] = i
                 i += 1
 
-        print(dic)
         return [index_of_dic(dic, p) for p in lista]
 
     # Supondo que 'df1' é o seu DataFrame
@@ -82,7 +82,6 @@ def get_dataframe1(sql_comando1):
 
     def StrList_to_UniqueIndexList1(lista):
         group = set(lista)
-        print(group)
 
         dic1 = {}
         i = 0
@@ -91,7 +90,6 @@ def get_dataframe1(sql_comando1):
                 dic1[g] = i
                 i += 1
 
-        print(dic1)
         return [index_of_dic1(dic1, p) for p in lista]
 
     df1['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df1['DsTpVeiculo'])
@@ -101,7 +99,6 @@ def get_dataframe1(sql_comando1):
 
     def StrList_to_UniqueIndexList2(lista):
         group = set(lista)
-        print(group)
 
         dic2 = {}
         i = 0
@@ -110,79 +107,37 @@ def get_dataframe1(sql_comando1):
                 dic2[g] = i
                 i += 1
 
-        print(dic2)
         return [index_of_dic2(dic2, p) for p in lista]
 
     df1['DsModelo'] = StrList_to_UniqueIndexList2(df1['DsModelo'])
     return df1
 
-def get_dataframe1(sql_comando2):
+def get_dataframe2(sql_comando2):
     with engine.connect() as conn:
         df2 = pd.read_sql(sql_comando2, conn)
-
-    def index_of_dic1(dic1, key1):
-        return dic1[key1]
-
-    def StrList_to_UniqueIndexList1(lista):
-        group = set(lista)
-        print(group)
-
-        dic1 = {}
-        i = 0
-        for g in group:
-             if g not in dic1:
-                dic1[g] = i
-                i += 1
-
-        print(dic1)
-        return [index_of_dic1(dic1, p) for p in lista]
-
-    df2['DsLocal'] = StrList_to_UniqueIndexList1(df2['DsLocal'])
-
-    def index_of_dic2(dic2, key2):
-        return dic2[key2]
-
-    def StrList_to_UniqueIndexList2(lista):
-        group = set(lista)
-        print(group)
-
-        dic2 = {}
-        i = 0
-        for g in group:
-            if g not in dic2:
-                dic2[g] = i
-                i += 1
-
-        print(dic2)
-        return [index_of_dic2(dic2, p) for p in lista]
-
-    df2['tp_ocor'] = StrList_to_UniqueIndexList2(df2['tp_ocor'])
 
     def index_of_dic3(dic3, key3):
         return dic3[key3]
 
     def StrList_to_UniqueIndexList3(lista):
         group = set(lista)
-        print(group)
 
         dic3 = {}
         i = 0
         for g in group:
-            if g not in dic3:
+             if g not in dic3:
                 dic3[g] = i
                 i += 1
 
-        print(dic3)
         return [index_of_dic3(dic3, p) for p in lista]
 
-    df2['Situacao'] = StrList_to_UniqueIndexList3(df2['Situacao'])
+    df2['DsLocal'] = StrList_to_UniqueIndexList3(df2['DsLocal'])
 
     def index_of_dic4(dic4, key4):
         return dic4[key4]
 
     def StrList_to_UniqueIndexList4(lista):
         group = set(lista)
-        print(group)
 
         dic4 = {}
         i = 0
@@ -191,10 +146,43 @@ def get_dataframe1(sql_comando2):
                 dic4[g] = i
                 i += 1
 
-        print(dic4)
         return [index_of_dic4(dic4, p) for p in lista]
 
-    df2['dsocorrencia'] = StrList_to_UniqueIndexList4(df2['dsocorrencia'])
+    df2['tp_ocor'] = StrList_to_UniqueIndexList4(df2['tp_ocor'])
+
+    def index_of_dic5(dic5, key5):
+        return dic5[key5]
+
+    def StrList_to_UniqueIndexList5(lista):
+        group = set(lista)
+
+        dic5 = {}
+        i = 0
+        for g in group:
+            if g not in dic5:
+                dic5[g] = i
+                i += 1
+
+        return [index_of_dic5(dic5, p) for p in lista]
+
+    df2['Situacao'] = StrList_to_UniqueIndexList5(df2['Situacao'])
+
+    def index_of_dic6(dic6, key6):
+        return dic6[key6]
+
+    def StrList_to_UniqueIndexList6(lista):
+        group = set(lista)
+
+        dic6 = {}
+        i = 0
+        for g in group:
+            if g not in dic6:
+                dic6[g] = i
+                i += 1
+
+        return [index_of_dic6(dic6, p) for p in lista]
+
+    df2['dsocorrencia'] = StrList_to_UniqueIndexList6(df2['dsocorrencia'])
     return df2
 
 # Função para gerar e salvar gráficos
@@ -217,7 +205,7 @@ def gerar_e_salvar_graficos(df):
         plt.savefig(caminho_arquivo)
         plt.close()
 
-def gerar_e_salvar_graficos(df1):
+def gerar_e_salvar_graficos1(df1):
     for campo1 in campos1:
         plt.figure(figsize=(10, 6))
         
@@ -236,7 +224,9 @@ def gerar_e_salvar_graficos(df1):
         plt.savefig(caminho_arquivo)
         plt.close()
 
-def gerar_e_salvar_graficos(df2):
+def gerar_e_salvar_graficos2(df2):
+
+    print(df2.columns)
     for campo2 in campos2:
         plt.figure(figsize=(10, 6))
         
@@ -258,13 +248,13 @@ def gerar_e_salvar_graficos(df2):
 # Exemplo de uso da função em uma rota Flask
 @analise.route('/gerar_graficos')
 def gerar_graficos():
-    df = get_dataframe(sql_comando)  # Certifique-se de que esta função retorna o DataFrame correto
-    gerar_e_salvar_graficos(df)
-    df1 = get_dataframe(sql_comando1)  # Certifique-se de que esta função retorna o DataFrame correto
-    gerar_e_salvar_graficos(df1)
-    df2 = get_dataframe(sql_comando2)  # Certifique-se de que esta função retorna o DataFrame correto
-    gerar_e_salvar_graficos(df2)
-    return "Gráficos gerados e salvos com sucesso!"
+        df = get_dataframe(sql_comando)
+        gerar_e_salvar_graficos(df)
+        df1 = get_dataframe1(sql_comando1)
+        gerar_e_salvar_graficos1(df1)
+        df2 = get_dataframe2(sql_comando2)
+        gerar_e_salvar_graficos2(df2)
+        return "Gráficos gerados e salvos com sucesso!"
 
 # Rota para exibir um gráfico específico
 @analise.route('/grafico/<campo>')

@@ -42,8 +42,8 @@ And A.CdOcorrencia <> '12'
 and A.DtEmissao >= '20230101'
 and A.DtEmissao <= '20231231'
 AND L.VlCusto > 0
-and A.NrBo = 9733
-and A.CdEmpresa = 4
+--and A.NrBo = 9733
+--and A.CdEmpresa = 4
 and substring(CLI.CdInscricao,1,8) not in ('88081039')
 GROUP BY A.CdEmpresaResp, A.DtBaixa,  A.DtEmissao, K.DsLocal,
 D.DSOCORRENCIA, A.NrBo, CLI.CdInscricao, DsEntidade, DtOcorrencia, g.DtEmissao,  CAST(A.DsOcorrencia as varchar)
