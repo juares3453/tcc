@@ -18,12 +18,5 @@
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
 
-    <h2>Gráficos</h2>
-    {% for nome_grafico, nome_arquivo in graficos.items() %}
-        <div>
-            <h3>{{ nome_grafico }}</h3>
-            <img src="{{ url_for('static', filename='graficos/' + nome_arquivo) }}">
-        </div>
-    {% endfor %}
 </body>
 </html>

@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 import seaborn as sns
 from io import BytesIO
 import os
+import matplotlib as mpl
+mpl.rcParams['figure.max_open_warning'] = 50
 
 import matplotlib
 matplotlib.use('Agg')  # Definir um backend que não depende de GUI
@@ -189,61 +191,96 @@ def get_dataframe2(sql_comando2):
 def gerar_e_salvar_graficos(df):
     for campo in campos:
         plt.figure(figsize=(10, 6))
-        
-        if df[campo].dtype in ['int64', 'float64']:
-            sns.histplot(df[campo], kde=True)
-        else:
-            sns.countplot(x=campo, data=df)
-        
-        plt.title(f'Distribuição de {campo}', size=18)
-        plt.xlabel(campo, size=14)
-        plt.ylabel('Contagem' if df[campo].dtype not in ['int64', 'float64'] else 'Densidade', size=14)
-        plt.xticks(rotation=45)
 
-        # Salvar gráfico
-        caminho_arquivo = os.path.join(graficos_dir, f'{campo}.png')
-        plt.savefig(caminho_arquivo)
-        plt.close()
+    # Usar plt.hist para campos específicos
+    if campo in ['peso_total', 'peso_entregue', 'frete_total', 'frete_entregue']:
+        plt.hist(df[campo], bins=30, color='blue', alpha=0.7)
+        plt.ylabel('Contagem', size=14)
+        plt.title(f'Histograma (plt.hist) de {campo}', size=18)
+
+    # Usar sns.histplot para outros campos numéricos
+    elif df[campo].dtype in ['int64', 'float64']:
+        sns.histplot(df[campo], kde=True, color='green')
+        plt.ylabel('Densidade', size=14)
+        plt.title(f'Histograma (sns.histplot) de {campo}', size=18)
+
+    # Usar sns.countplot para campos não numéricos
+    else:
+        sns.countplot(x=campo, data=df, palette='Set2')
+        plt.ylabel('Contagem', size=14)
+        plt.title(f'Distribuição de {campo}', size=18)
+
+    plt.xlabel(campo, size=14)
+    plt.xticks(rotation=45)
+
+    # Salvar gráfico
+    caminho_arquivo = os.path.join(graficos_dir, f'{campo}.png')
+    plt.savefig(caminho_arquivo)
+    plt.close()
 
 def gerar_e_salvar_graficos1(df1):
     for campo1 in campos1:
         plt.figure(figsize=(10, 6))
-        
-        if df1[campo1].dtype in ['int64', 'float64']:
-            sns.histplot(df1[campo1], kde=True)
-        else:
-            sns.countplot(x=campo1, data=df1)
-        
-        plt.title(f'Distribuição de {campo1}', size=18)
-        plt.xlabel(campo1, size=14)
-        plt.ylabel('Contagem' if df1[campo1].dtype not in ['int64', 'float64'] else 'Densidade', size=14)
-        plt.xticks(rotation=45)
 
-        # Salvar gráfico
-        caminho_arquivo = os.path.join(graficos_dir, f'{campo1}.png')
-        plt.savefig(caminho_arquivo)
-        plt.close()
+    # Usar plt.hist para campos específicos (exemplo: 'VlCusto', 'km_rodado')
+    if campo1 in ['VlCusto', 'km_rodado', 'Lucro', '%Lucro']:
+        plt.hist(df1[campo1], bins=30, color='blue', alpha=0.7)
+        plt.ylabel('Contagem', size=14)
+        plt.title(f'Histograma (plt.hist) de {campo1}', size=18)
+
+    # Usar sns.histplot para outros campos numéricos
+    elif df1[campo1].dtype in ['int64', 'float64']:
+        sns.histplot(df1[campo1], kde=True, color='green')
+        plt.ylabel('Densidade', size=14)
+        plt.title(f'Histograma (sns.histplot) de {campo1}', size=18)
+
+    # Usar sns.countplot para campos não numéricos
+    else:
+        sns.countplot(x=campo1, data=df1, palette='Set2')
+        plt.ylabel('Contagem', size=14)
+        plt.title(f'Distribuição de {campo1}', size=18)
+
+    plt.xlabel(campo1, size=14)
+    plt.xticks(rotation=45)
+
+    # Salvar gráfico
+    caminho_arquivo = os.path.join(graficos_dir, f'{campo1}.png')
+    plt.savefig(caminho_arquivo)
+    plt.close()
 
 def gerar_e_salvar_graficos2(df2):
-
-    print(df2.columns)
     for campo2 in campos2:
         plt.figure(figsize=(10, 6))
-        
-        if df2[campo2].dtype in ['int64', 'float64']:
-            sns.histplot(df2[campo2], kde=True)
-        else:
-            sns.countplot(x=campo2, data=df2)
-        
-        plt.title(f'Distribuição de {campo2}', size=18)
-        plt.xlabel(campo2, size=14)
-        plt.ylabel('Contagem' if df2[campo2].dtype not in ['int64', 'float64'] else 'Densidade', size=14)
-        plt.xticks(rotation=45)
 
-        # Salvar gráfico
-        caminho_arquivo = os.path.join(graficos_dir, f'{campo2}.png')
-        plt.savefig(caminho_arquivo)
-        plt.close()
+    # Usar plt.hist para campos específicos
+    if campo2 in ['peso_total', 'peso_entregue', 'frete_total', 'frete_entregue']:
+        plt.hist(df2[campo2], bins=30, color='blue', alpha=0.7)
+        plt.ylabel('Contagem', size=14)
+        plt.title(f'Histograma (plt.hist) de {campo2}', size=18)
+
+    # Usar sns.histplot para outros campos numéricos
+    elif df2[campo2].dtype in ['int64', 'float64']:
+        sns.histplot(df2[campo2], kde=True, color='green')
+        plt.ylabel('Densidade', size=14)
+        plt.title(f'Histograma (sns.histplot) de {campo2}', size=18)
+
+    # Usar sns.countplot para campos não numéricos
+    else:
+        sns.countplot(x=campo2, data=df2, palette='Set2')
+        plt.ylabel('Contagem', size=14)
+        plt.title(f'Distribuição de {campo2}', size=18)
+
+    plt.xlabel(campo2, size=14)
+    plt.xticks(rotation=45)
+
+    # Salvar gráfico
+    caminho_arquivo = os.path.join(graficos_dir, f'{campo2}.png')
+    plt.savefig(caminho_arquivo)
+    plt.close()
+
+@analise.route('/')
+def index():
+    return render_template('index.html')
 
 # Exemplo de uso da função em uma rota Flask
 @analise.route('/gerar_graficos')
@@ -255,6 +292,81 @@ def gerar_graficos():
         df2 = get_dataframe2(sql_comando2)
         gerar_e_salvar_graficos2(df2)
         return "Gráficos gerados e salvos com sucesso!"
+
+@analise.route('/dashboard_um')
+def dashboard_um():
+    df = get_dataframe(sql_comando)
+
+    #Data outliers
+    df[df.duplicated(keep='first')]
+    df.drop_duplicates(keep='first',inplace=True)
+
+    # Captura a saída de df.info()
+    buffer = StringIO()
+    df.info(buf=buffer)
+    infos_variaveis = buffer.getvalue()
+
+    dados_texto = {
+        'colunas': df.columns.tolist(),
+        'dados_originais': df.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df.shape,
+        'describe': df.describe().to_html(classes='table'),
+        'describe_include0': df.describe(include='O').to_html(classes='table'),
+        'limpeza': df.isnull().sum()
+    }
+
+    return render_template('dashboard_um.html', dados_texto=dados_texto)
+
+@analise.route('/dashboard_dois')
+def dashboard_dois():
+    df1 = get_dataframe1(sql_comando1)
+
+    #Data outliers1
+    df1[df1.duplicated(keep='first')]
+    df1.drop_duplicates(keep='first',inplace=True)
+
+    # Captura a saída de df.info()
+    buffer = StringIO()
+    df1.info(buf=buffer)
+    infos_variaveis = buffer.getvalue()
+
+    dados_texto = {
+        'colunas': df1.columns.tolist(),
+        'dados_originais': df1.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df1.shape,
+        'describe': df1.describe().to_html(classes='table'),
+        'describe_include0': df1.describe(include='O').to_html(classes='table'),
+        'limpeza': df1.isnull().sum()
+    }
+
+    return render_template('dashboard_dois.html', dados_texto=dados_texto)
+
+@analise.route('/dashboard_tres')
+def dashboard_tres():
+    df2 = get_dataframe2(sql_comando2)
+
+    #Data outliers1
+    df2[df2.duplicated(keep='first')]
+    df2.drop_duplicates(keep='first',inplace=True)
+
+    # Captura a saída de df.info()
+    buffer = StringIO()
+    df2.info(buf=buffer)
+    infos_variaveis = buffer.getvalue()
+
+    dados_texto = {
+        'colunas': df2.columns.tolist(),
+        'dados_originais': df2.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df2.shape,
+        'describe': df2.describe().to_html(classes='table'),
+        'describe_include0': df2.describe(include='O').to_html(classes='table'),
+        'limpeza': df2.isnull().sum()
+    }
+
+    return render_template('dashboard_tres.html', dados_texto=dados_texto)
 
 # Rota para exibir um gráfico específico
 @analise.route('/grafico/<campo>')
