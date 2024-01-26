@@ -19,5 +19,12 @@
     <div>{{ dados_texto.describe_include0 | safe }}</div>
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
+
+    {% for caminho in caminhos_graficos %}
+    <div>
+        <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico">
+    </div>
+    {% endfor %}
+
 </body>
 </html>

@@ -15,8 +15,17 @@
     <p><strong>Shape:</strong> {{ dados_texto.shape }}</p>
     <p><strong>Describe:</strong></p>
     <div>{{ dados_texto.describe | safe }}</div>
+    <p><strong>Describe Include 0:</strong></p>
+    <div>{{ dados_texto.describe_include0 | safe }}</div>
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
 
+    <h2>Gráficos</h2>
+    {% for campo2 in campos2 %}
+    <div>
+        <h3>Gráfico de {{ campo2 }}</h3>
+        <img src="{{ url_for('static', filename='graficos/df2_' + campo2 + '.png') }}" alt="Gráfico de {{ campo2 }}">
+    </div>
+    {% endfor %}
 </body>
 </html>
