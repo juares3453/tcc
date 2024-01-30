@@ -20,12 +20,10 @@
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
 
-    <h2>Gráficos</h2>
-    {% for campo2 in campos2 %}
+    {% for caminho in caminhos_graficos %}
     <div>
-        <h3>Gráfico de {{ campo2 }}</h3>
-        <img src="{{ url_for('static', filename='graficos/df2_' + campo2 + '.png') }}" alt="Gráfico de {{ campo2 }}">
-    </div>
-    {% endfor %}
+        <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo2 }}">
+    </div>  
+    {% endfor %}     
 </body>
 </html>

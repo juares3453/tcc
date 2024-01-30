@@ -49,8 +49,6 @@ sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.s
 sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
 sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
 
-
-
 # Função para obter um DataFrame a partir de um comando SQL
 def get_dataframe(sql_comando):
     with engine.connect() as conn:
@@ -308,8 +306,8 @@ def dashboard_um():
         'limpeza': df.isnull().sum()
     }
 
-        # Lista para armazenar os caminhos dos gráficos
-    caminhos_graficos = [os.path.join(graficos_dir, f'df_{campo}.png') for campo in campos]
+    # Lista para armazenar os caminhos dos gráficos
+    caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
 
     return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos)
 
@@ -332,11 +330,11 @@ def dashboard_dois():
         'infos_variaveis': infos_variaveis,
         'shape': df1.shape,
         'describe': df1.describe().to_html(classes='table'),
-        'describe_include0': df1.describe(include='O').to_html(classes='table'),
+        #'describe_include0': df1.describe(include='O').to_html(classes='table'),
         'limpeza': df1.isnull().sum()
     }
-
-    caminhos_graficos = [os.path.join(graficos_dir, f'df_{campo1}.png') for campo1 in campos1]
+    
+    caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
 
     return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos)
 
@@ -364,7 +362,7 @@ def dashboard_tres():
     }
 
  
-    caminhos_graficos = [os.path.join(graficos_dir, f'df_{campo2}.png') for campo2 in campos2]
+    caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
 
     return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos)
 
