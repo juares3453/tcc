@@ -24,6 +24,12 @@
     <div>
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo2 }}">
     </div>  
-    {% endfor %}     
+    {% endfor %} 
+    
+    {% for caminho in caminhos_graficos3 %}
+    <div>
+        <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo2 }}">
+    </div>  
+    {% endfor %}   
 </body>
 </html>

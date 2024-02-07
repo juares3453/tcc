@@ -446,14 +446,15 @@ def dashboard_um():
         'infos_variaveis': infos_variaveis,
         'shape': df.shape,
         'describe': df.describe().to_html(classes='table'),
-        'describe_include0': df.describe(include='O').to_html(classes='table'),
+        #'describe_include0': df.describe(include='O').to_html(classes='table'),
         'limpeza': df.isnull().sum()
     }
 
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
+    caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
 
-    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos)
+    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1 )
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -479,8 +480,9 @@ def dashboard_dois():
     }
     
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
+    caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
 
-    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos)
+    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2 )
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -501,14 +503,16 @@ def dashboard_tres():
         'infos_variaveis': infos_variaveis,
         'shape': df2.shape,
         'describe': df2.describe().to_html(classes='table'),
-        'describe_include0': df2.describe(include='O').to_html(classes='table'),
+       # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
         'limpeza': df2.isnull().sum()
     }
 
  
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
+    caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
 
-    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos)
+    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3 )
+
 
 # Rota para exibir um gráfico específico
 @analise.route('/grafico/<campo>')
