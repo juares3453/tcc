@@ -2,15 +2,12 @@ from flask import Flask, render_template, send_file
 import pandas as pd
 from sqlalchemy import create_engine
 import seaborn as sns
+import matplotlib as mpl
+mpl.use('Agg')  # Definir um backend que não depende de GUI
 import matplotlib.pyplot as plt
 import os
-import matplotlib as mpl
 from io import StringIO
 mpl.rcParams['figure.max_open_warning'] = 50
-
-import matplotlib
-matplotlib.use('Agg')  # Definir um backend que não depende de GUI
-import matplotlib.pyplot as plt
 
 analise = Flask(__name__)
 
@@ -71,6 +68,42 @@ def get_dataframe(sql_comando):
 
     # Supondo que 'df1' é o seu DataFrame
     df['Filial'] = StrList_to_UniqueIndexList(df['Filial'])
+
+    def index_of_dic2(dic2, key2):
+        return dic2[key2]
+
+    def StrList_to_UniqueIndexList2(lista):
+        group = set(lista)
+
+        dic2 = {}
+        i = 0
+        for g in group:
+            if g not in dic2:
+                dic2[g] = i
+                i += 1
+
+        return [index_of_dic2(dic2, p) for p in lista]
+
+    # Supondo que 'df1' é o seu DataFrame
+    df['conf_carregamento'] = StrList_to_UniqueIndexList2(df['conf_carregamento'])
+
+    def index_of_dic1(dic1, key1):
+        return dic1[key1]
+
+    def StrList_to_UniqueIndexList1(lista):
+        group = set(lista)
+
+        dic1 = {}
+        i = 0
+        for g in group:
+            if g not in dic1:
+                dic1[g] = i
+                i += 1
+
+        return [index_of_dic1(dic1, p) for p in lista]
+
+    # Supondo que 'df1' é o seu DataFrame
+    df['conf_entrega'] = StrList_to_UniqueIndexList1(df['conf_entrega'])
     return df
 
 def get_dataframe1(sql_comando1):
@@ -183,6 +216,23 @@ def get_dataframe2(sql_comando2):
         return [index_of_dic6(dic6, p) for p in lista]
 
     df2['dsocorrencia'] = StrList_to_UniqueIndexList6(df2['dsocorrencia'])
+
+    def index_of_dic7(dic7, key7):
+        return dic7[key7]
+
+    def StrList_to_UniqueIndexList7(lista):
+        group = set(lista)
+
+        dic7 = {}
+        i = 0
+        for g in group:
+            if g not in dic7:
+                dic7[g] = i
+                i += 1
+
+        return [index_of_dic7(dic7, p) for p in lista]
+
+    df2['CLIENTE'] = StrList_to_UniqueIndexList7(df2['CLIENTE'])
     return df2
 
 # Função para gerar e salvar gráficos
@@ -267,6 +317,97 @@ def gerar_e_salvar_graficos2(df2, campos2, nome_prefixo):
             finally:
                 plt.close('all')
 
+def gerar_e_salvar_graficos3(df, campos, nome_prefixo):
+    for campo in campos:
+        with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+                plt.figure(figsize=(10, 6))
+
+                # Cria um boxplot
+                plt.boxplot(df[campo], vert=False, notch=True, patch_artist=True)
+                plt.title(f'Box (plt.boxplot) de {campo}', size=18)
+                plt.xlabel(campo, size=14)
+                plt.xticks(rotation=45)
+                
+                # Calcula os potenciais outliers usando IQR
+                Q1 = df[campo].quantile(0.25)
+                Q3 = df[campo].quantile(0.75)
+                IQR = Q3 - Q1
+                outliers = df[(df[campo] < Q1 - 1.5 * IQR) | (df[campo] > Q3 + 1.5 * IQR)]
+
+                # Salva os outliers em um arquivo CSV
+                #outliers.to_csv(os.path.join(graficos_dir, f'{nome_prefixo}_{campo}_outliers.csv'), index=False)
+
+                # Remove os outliers do DataFrame original (opcional)
+                df = df[~df.index.isin(outliers.index)]
+
+                # Salva o boxplot como uma imagem
+                caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo}_boxplot.png')
+                plt.savefig(caminho_arquivo)
+            finally:
+                plt.close('all')
+
+def gerar_e_salvar_graficos4(df1, campos1, nome_prefixo):
+    for campo1 in campos1:
+        with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+                plt.figure(figsize=(10, 6))
+
+                # Cria um boxplot
+                plt.boxplot(df1[campo1], vert=False, notch=True, patch_artist=True)
+                plt.title(f'Box (plt.boxplot) de {campo1}', size=18)
+                plt.xlabel(campo1, size=14)
+                plt.xticks(rotation=45)
+                
+                # Calcula os potenciais outliers usando IQR
+                Q1 = df1[campo1].quantile(0.25)
+                Q3 = df1[campo1].quantile(0.75)
+                IQR = Q3 - Q1
+                outliers = df1[(df1[campo1] < Q1 - 1.5 * IQR) | (df1[campo1] > Q3 + 1.5 * IQR)]
+
+                # Salva os outliers em um arquivo CSV
+                #outliers.to_csv(os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_outliers.csv'), index=False)
+
+                # Remove os outliers do DataFrame original (opcional)
+                df1 = df1[~df1.index.isin(outliers.index)]
+
+                # Salva o boxplot como uma imagem
+                caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_boxplot.png')
+                plt.savefig(caminho_arquivo)
+            finally:
+                plt.close('all')
+
+def gerar_e_salvar_graficos5(df2, campos2, nome_prefixo):
+    for campo2 in campos2:
+        with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+                # Calcula os potenciais outliers usando IQR
+             
+                Q1 = df2[campo2].quantile(0.25)
+                Q3 = df2[campo2].quantile(0.75)
+                IQR = Q3 - Q1
+                outliers = df2[(df2[campo2] < Q1 - 1.5 * IQR) | (df2[campo2] > Q3 + 1.5 * IQR)]
+
+                # Salva os outliers em um arquivo CSV
+                #outliers.to_csv(os.path.join(graficos_dir, f'{nome_prefixo}_{campo2}_outliers.csv'), index=False)
+
+                # Remove os outliers do DataFrame original (opcional)
+                df2 = df2[~df2.index.isin(outliers.index)]
+
+                plt.figure(figsize=(10, 6))
+
+                # Cria um boxplot
+
+                plt.boxplot(df2[campo2], vert=False, notch=True, patch_artist=True)
+                plt.title(f'Box (plt.boxplot) de {campo2}', size=18)
+                plt.xlabel(campo2, size=14)
+                plt.xticks(rotation=45)
+                
+                # Salva o boxplot como uma imagem
+                caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo2}_boxplot.png')
+                plt.savefig(caminho_arquivo)
+            finally:
+                plt.close('all')
 
 @analise.route('/')
 def index():
@@ -281,6 +422,9 @@ def gerar_graficos():
     gerar_e_salvar_graficos(df1, campos1, 'df1')
     df2 = get_dataframe2(sql_comando2)
     gerar_e_salvar_graficos(df2, campos2, 'df2')
+    gerar_e_salvar_graficos3(df, campos, 'df')
+    gerar_e_salvar_graficos4(df1, campos1, 'df1')
+    gerar_e_salvar_graficos5(df2, campos2, 'df2')
     return "Gráficos gerados e salvos com sucesso!"
 
 @analise.route('/dashboard_um')
