@@ -409,6 +409,21 @@ def gerar_e_salvar_graficos5(df2, campos2, nome_prefixo):
             finally:
                 plt.close('all')
 
+def gerar_e_salvar_graficos_pairplot(df, campos, nome_prefixo):
+    with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+               # Selecione apenas os campos numéricos do DataFrame
+                df_numeric = df[campos]
+
+                # Plote a matriz de gráficos de dispersão
+                sns.pairplot(df_numeric)
+             
+                # Salva o boxplot como uma imagem
+                caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_pairplot.png')
+                plt.savefig(caminho_arquivo)
+            finally:
+                plt.close('all')
+
 @analise.route('/')
 def index():
     return render_template('index.html')
@@ -425,6 +440,9 @@ def gerar_graficos():
     gerar_e_salvar_graficos3(df, campos, 'df')
     gerar_e_salvar_graficos4(df1, campos1, 'df1')
     gerar_e_salvar_graficos5(df2, campos2, 'df2')
+    gerar_e_salvar_graficos_pairplot(df, campos, 'df')
+    gerar_e_salvar_graficos_pairplot(df1, campos1, 'df1')
+    gerar_e_salvar_graficos_pairplot(df2, campos2, 'df2')
     return "Gráficos gerados e salvos com sucesso!"
 
 @analise.route('/dashboard_um')
@@ -440,6 +458,15 @@ def dashboard_um():
     df.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
 
+    # Calculando correlação para todos os pares de campos
+    correlacoes = {}
+    for campo1 in campos:
+        for campo2 in campos:
+            if campo1 != campo2:
+                correlacao = df.corr()[campo1][campo2]
+                chave = f'{campo1} - {campo2}'
+                correlacoes[chave] = correlacao
+
     dados_texto = {
         'colunas': df.columns.tolist(),
         'dados_originais': df.head(5).to_html(classes='table'),
@@ -447,14 +474,16 @@ def dashboard_um():
         'shape': df.shape,
         'describe': df.describe().to_html(classes='table'),
         #'describe_include0': df.describe(include='O').to_html(classes='table'),
-        'limpeza': df.isnull().sum()
+        'limpeza': df.isnull().sum(),
+        'correlacoes': correlacoes
     }
 
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
+    caminhos_graficos4 = [f'graficos/df_pairplot.png']
 
-    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1 )
+    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4 )
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -469,6 +498,14 @@ def dashboard_dois():
     df1.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
 
+    correlacoes = {}
+    for campo1 in campos1:
+        for campo2 in campos1:
+            if campo1 != campo2:
+                correlacao = df1.corr()[campo1][campo2]
+                chave = f'{campo1} - {campo2}'
+                correlacoes[chave] = correlacao
+
     dados_texto = {
         'colunas': df1.columns.tolist(),
         'dados_originais': df1.head(5).to_html(classes='table'),
@@ -476,13 +513,15 @@ def dashboard_dois():
         'shape': df1.shape,
         'describe': df1.describe().to_html(classes='table'),
         #'describe_include0': df1.describe(include='O').to_html(classes='table'),
-        'limpeza': df1.isnull().sum()
+        'limpeza': df1.isnull().sum(),
+        'correlacoes': correlacoes
     }
     
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
     caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
+    caminhos_graficos5 = [f'graficos/df1_pairplot.png']
 
-    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2 )
+    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5 )
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -497,6 +536,14 @@ def dashboard_tres():
     df2.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
 
+    correlacoes = {}
+    for campo1 in campos2:
+        for campo2 in campos2:
+            if campo1 != campo2:
+                correlacao = df2.corr()[campo1][campo2]
+                chave = f'{campo1} - {campo2}'
+                correlacoes[chave] = correlacao
+
     dados_texto = {
         'colunas': df2.columns.tolist(),
         'dados_originais': df2.head(5).to_html(classes='table'),
@@ -504,14 +551,16 @@ def dashboard_tres():
         'shape': df2.shape,
         'describe': df2.describe().to_html(classes='table'),
        # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
-        'limpeza': df2.isnull().sum()
+        'limpeza': df2.isnull().sum(),
+        'correlacoes': correlacoes
     }
 
  
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
+    caminhos_graficos6 = [f'graficos/df2_pairplot.png']
 
-    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3 )
+    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6 )
 
 
 # Rota para exibir um gráfico específico

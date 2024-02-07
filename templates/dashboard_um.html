@@ -20,6 +20,10 @@
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
 
+    {% for chave, valor in dados_texto.correlacoes.items() %}
+    <p>Correlação entre {{ chave }}: <strong>{{ valor }}</strong></p>
+    {% endfor %}
+
     {% for caminho in caminhos_graficos %}
     <div>
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo }}">
@@ -31,6 +35,11 @@
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo }}">
     </div>  
     {% endfor %}   
-
+    
+    {% for caminho in caminhos_graficos4 %}
+    <div>
+        <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de Pairplot">
+    </div>
+    {% endfor %}   
 </body>
 </html>
