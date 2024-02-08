@@ -47,11 +47,10 @@
     {% endfor %}   
 
     <h1>Scatter Plots</h1>
-    {% for campo1, campo2 in combinacoes %}
+    {% for caminho in caminhos_graficos7 %}
     <div>
-        <h2>{{ campo1 }} vs {{ campo2 }}</h2>
-        <img src="{{ url_for('static', filename='graficos/{{ nome_prefixo }}_{{ campo1 }}_{{ campo2 }}_scatterplot.png') }}" alt="{{ campo1 }} vs {{ campo2 }}">
-    </div>
+          <img src="{{ url_for('static', filename=caminho) }}" alt="Scatterplot">
     {% endfor %}
+    </div>
 </body>
 </html>

@@ -479,6 +479,8 @@ def dashboard_um():
     df.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
 
+    combinacoes = list(itertools.combinations(campos, 2))
+
     # Calculando correlação para todos os pares de campos
     correlacoes = {}
     for campo1 in campos:
@@ -503,8 +505,9 @@ def dashboard_um():
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
     caminhos_graficos4 = [f'graficos/df_pairplot.png']
+    caminhos_graficos7 = [f'graficos/df_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
 
-    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4 )
+    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 )
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -513,6 +516,8 @@ def dashboard_dois():
     #Data outliers1
     df1[df1.duplicated(keep='first')]
     df1.drop_duplicates(keep='first',inplace=True)
+
+    combinacoes = list(itertools.combinations(campos1, 2))
 
     # Captura a saída de df.info()
     buffer = StringIO()
@@ -541,8 +546,9 @@ def dashboard_dois():
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
     caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
     caminhos_graficos5 = [f'graficos/df1_pairplot.png']
+    caminhos_graficos8 = [f'graficos/df1_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
 
-    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5 )
+    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8 )
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -551,6 +557,8 @@ def dashboard_tres():
     #Data outliers1
     df2[df2.duplicated(keep='first')]
     df2.drop_duplicates(keep='first',inplace=True)
+
+    combinacoes = list(itertools.combinations(campos2, 2))
 
     # Captura a saída de df.info()
     buffer = StringIO()
@@ -580,8 +588,9 @@ def dashboard_tres():
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
     caminhos_graficos6 = [f'graficos/df2_pairplot.png']
+    caminhos_graficos9 = [f'graficos/df2_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
 
-    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6 )
+    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9 )
 
 
 # Rota para exibir um gráfico específico

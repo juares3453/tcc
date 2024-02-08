@@ -41,5 +41,12 @@
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de Pairplot">
     </div>
     {% endfor %} 
+
+    <h1>Scatter Plots</h1>
+    {% for caminho in caminhos_graficos9 %}
+    <div>
+          <img src="{{ url_for('static', filename=caminho) }}" alt="Scatterplot">
+    {% endfor %}
+    </div>
 </body>
 </html>
