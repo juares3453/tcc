@@ -20,26 +20,38 @@
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
 
+    <h1>Correlations</h1>
     {% for chave, valor in dados_texto.correlacoes.items() %}
     <p>Correlação entre {{ chave }}: <strong>{{ valor }}</strong></p>
     {% endfor %}
 
+    <h1>Counts and Hist Plots</h1>
     {% for caminho in caminhos_graficos %}
     <div>
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo }}">
     </div>  
     {% endfor %}    
-    
+
+    <h1>Box Plots</h1>
     {% for caminho in caminhos_graficos1 %}
     <div>
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de {{ campo }}">
     </div>  
     {% endfor %}   
     
+    <h1>Pair Plots</h1>
     {% for caminho in caminhos_graficos4 %}
     <div>
         <img src="{{ url_for('static', filename=caminho) }}" alt="Gráfico de Pairplot">
     </div>
     {% endfor %}   
+
+    <h1>Scatter Plots</h1>
+    {% for campo1, campo2 in combinacoes %}
+    <div>
+        <h2>{{ campo1 }} vs {{ campo2 }}</h2>
+        <img src="{{ url_for('static', filename='graficos/{{ nome_prefixo }}_{{ campo1 }}_{{ campo2 }}_scatterplot.png') }}" alt="{{ campo1 }} vs {{ campo2 }}">
+    </div>
+    {% endfor %}
 </body>
 </html>

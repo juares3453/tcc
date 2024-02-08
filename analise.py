@@ -7,6 +7,7 @@ mpl.use('Agg')  # Definir um backend que não depende de GUI
 import matplotlib.pyplot as plt
 import os
 from io import StringIO
+import itertools
 mpl.rcParams['figure.max_open_warning'] = 50
 
 analise = Flask(__name__)
@@ -424,23 +425,22 @@ def gerar_e_salvar_graficos_pairplot(df, campos, nome_prefixo):
             finally:
                 plt.close('all')
 
-def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):
+def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):                
+# Cria todas as combinações possíveis de pares de campos
+    combinacoes = list(itertools.combinations(campos, 2))
+    
     with plt.rc_context(rc={'figure.max_open_warning': 0}):
-            try:
-               for campo1 in campos:
-                    for campo2 in campos:
-                        if campo1 != campo2:
-                            plt.figure(figsize=(10, 6))
-                            sns.scatterplot(x=campo1, y=campo2, color='r', data=df)
-                            plt.title(f'{campo1} vs {campo2}', size=18)
-                            plt.xlabel(campo1, size=14)
-                            plt.ylabel(campo2, size=14)
-
-                            # Salva o boxplot como uma imagem
-                            caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_{campo2}_scatterplot.png')
-                            plt.savefig(caminho_arquivo)
-            finally:
-                    plt.close('all')
+        for campo1, campo2 in combinacoes:
+            plt.figure(figsize=(10, 6))
+            sns.scatterplot(x=campo1, y=campo2, color='r', data=df)
+            plt.title(f'{campo1} vs {campo2}', size=18)
+            plt.xlabel(campo1, size=14)
+            plt.ylabel(campo2, size=14)
+            
+            # Salva o gráfico de dispersão como uma imagem
+            caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_{campo2}_scatterplot.png')
+            plt.savefig(caminho_arquivo)
+            plt.close()
 
 @analise.route('/')
 def index():
