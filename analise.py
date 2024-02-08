@@ -424,6 +424,24 @@ def gerar_e_salvar_graficos_pairplot(df, campos, nome_prefixo):
             finally:
                 plt.close('all')
 
+def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):
+    with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+               for campo1 in campos:
+                    for campo2 in campos:
+                        if campo1 != campo2:
+                            plt.figure(figsize=(10, 6))
+                            sns.scatterplot(x=campo1, y=campo2, color='r', data=df)
+                            plt.title(f'{campo1} vs {campo2}', size=18)
+                            plt.xlabel(campo1, size=14)
+                            plt.ylabel(campo2, size=14)
+
+                            # Salva o boxplot como uma imagem
+                            caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_{campo2}_scatterplot.png')
+                            plt.savefig(caminho_arquivo)
+            finally:
+                    plt.close('all')
+
 @analise.route('/')
 def index():
     return render_template('index.html')
@@ -443,6 +461,9 @@ def gerar_graficos():
     gerar_e_salvar_graficos_pairplot(df, campos, 'df')
     gerar_e_salvar_graficos_pairplot(df1, campos1, 'df1')
     gerar_e_salvar_graficos_pairplot(df2, campos2, 'df2')
+    gerar_e_salvar_graficos_scatterplot(df, campos, 'df')
+    gerar_e_salvar_graficos_scatterplot(df1, campos1, 'df1')
+    gerar_e_salvar_graficos_scatterplot(df2, campos2, 'df2')
     return "Gráficos gerados e salvos com sucesso!"
 
 @analise.route('/dashboard_um')
