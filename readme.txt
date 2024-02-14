@@ -10,7 +10,7 @@ adicionar algumas variáveis as informações
 
 - ajustar dados de custo 
 - finalizar analise de graficos
-- ajustar telas para mostrar os gráficos
 - analisar os graficos
 - colocar nos algoritmos
+
 

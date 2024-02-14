@@ -48,5 +48,21 @@
           <img src="{{ url_for('static', filename=caminho) }}" alt="Scatterplot">
     {% endfor %}
     </div>
+
+       
+    <h1>Heatmap</h1>
+    {% for caminho in caminhos_graficos14 %}
+    <div>
+          <img src="{{ url_for('static', filename=caminho) }}" alt="Heatmap">
+    {% endfor %}
+    </div>
+
+    
+    <h1>Pairplot Numerical</h1>
+    {% for caminho in caminhos_graficos15 %}
+    <div>
+          <img src="{{ url_for('static', filename=caminho) }}" alt="Pairplot Numerical">
+    {% endfor %}
+    </div>
 </body>
 </html>

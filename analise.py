@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import os
 from io import StringIO
 import itertools
+from tqdm import tqdm
 mpl.rcParams['figure.max_open_warning'] = 50
 
 analise = Flask(__name__)
@@ -238,6 +239,7 @@ def get_dataframe2(sql_comando2):
 
 # Função para gerar e salvar gráficos
 def gerar_e_salvar_graficos(df, campos, nome_prefixo):
+ with tqdm(total=len(campos), desc="Gerando gráficos parte 1") as pbar:
     for campo in campos:
         with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
@@ -261,10 +263,14 @@ def gerar_e_salvar_graficos(df, campos, nome_prefixo):
                 plt.xticks(rotation=45)
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo}.png')
                 plt.savefig(caminho_arquivo)
+
+                # Atualiza a barra de progresso
+                pbar.update(1)
             finally:
                 plt.close('all')
 
 def gerar_e_salvar_graficos1(df1, campos1, nome_prefixo):
+ with tqdm(total=len(campos1), desc="Gerando gráficos parte 2") as pbar:
     for campo1 in campos1:
         with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
@@ -288,10 +294,12 @@ def gerar_e_salvar_graficos1(df1, campos1, nome_prefixo):
                 plt.xticks(rotation=45)
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}.png')
                 plt.savefig(caminho_arquivo)
+                pbar.update(1)
             finally:
                 plt.close('all')
 
 def gerar_e_salvar_graficos2(df2, campos2, nome_prefixo):
+ with tqdm(total=len(campos1), desc="Gerando gráficos parte 3") as pbar:
     for campo2 in campos2:
         with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
@@ -315,10 +323,12 @@ def gerar_e_salvar_graficos2(df2, campos2, nome_prefixo):
                 plt.xticks(rotation=45)
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo2}.png')
                 plt.savefig(caminho_arquivo)
+                pbar.update(1)
             finally:
                 plt.close('all')
 
 def gerar_e_salvar_graficos3(df, campos, nome_prefixo):
+  with tqdm(total=len(campos), desc="Gerando gráficos parte 4") as pbar:  
     for campo in campos:
         with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
@@ -345,10 +355,12 @@ def gerar_e_salvar_graficos3(df, campos, nome_prefixo):
                 # Salva o boxplot como uma imagem
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo}_boxplot.png')
                 plt.savefig(caminho_arquivo)
+                pbar.update(1)
             finally:
                 plt.close('all')
 
 def gerar_e_salvar_graficos4(df1, campos1, nome_prefixo):
+ with tqdm(total=len(campos1), desc="Gerando gráficos parte 5") as pbar:
     for campo1 in campos1:
         with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
@@ -375,10 +387,12 @@ def gerar_e_salvar_graficos4(df1, campos1, nome_prefixo):
                 # Salva o boxplot como uma imagem
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_boxplot.png')
                 plt.savefig(caminho_arquivo)
+                pbar.update(1)
             finally:
                 plt.close('all')
 
 def gerar_e_salvar_graficos5(df2, campos2, nome_prefixo):
+ with tqdm(total=len(campos2), desc="Gerando gráficos parte 6") as pbar:
     for campo2 in campos2:
         with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
@@ -407,10 +421,12 @@ def gerar_e_salvar_graficos5(df2, campos2, nome_prefixo):
                 # Salva o boxplot como uma imagem
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo2}_boxplot.png')
                 plt.savefig(caminho_arquivo)
+                pbar.update(1)
             finally:
                 plt.close('all')
 
 def gerar_e_salvar_graficos_pairplot(df, campos, nome_prefixo):
+  with tqdm(total=len(campos1), desc="Gerando gráficos parte 7") as pbar:  
     with plt.rc_context(rc={'figure.max_open_warning': 0}):
             try:
                # Selecione apenas os campos numéricos do DataFrame
@@ -422,13 +438,16 @@ def gerar_e_salvar_graficos_pairplot(df, campos, nome_prefixo):
                 # Salva o boxplot como uma imagem
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_pairplot.png')
                 plt.savefig(caminho_arquivo)
+                pbar.update(1)
             finally:
                 plt.close('all')
 
-def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):                
+def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):    
+               
 # Cria todas as combinações possíveis de pares de campos
-    combinacoes = list(itertools.combinations(campos, 2))
-    
+ combinacoes = list(itertools.combinations(campos, 2))
+ 
+ with tqdm(total=len(combinacoes), desc="Gerando gráficos parte 8") as pbar:  
     with plt.rc_context(rc={'figure.max_open_warning': 0}):
         for campo1, campo2 in combinacoes:
             plt.figure(figsize=(10, 6))
@@ -441,7 +460,57 @@ def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):
             caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_{campo2}_scatterplot.png')
             plt.savefig(caminho_arquivo)
             plt.close()
+            pbar.update(1)
 
+
+def gerar_e_salvar_graficos_pairplot_numerical_values(df, campos, nome_prefixo):
+   
+ with tqdm(total=len(campos), desc="Gerando gráficos parte 9") as pbar:   
+    with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+               # Selecione apenas os campos numéricos do DataFrame
+                df_numeric = df[campos]
+
+                # Plote a matriz de gráficos de dispersão
+                plt.figure(figsize=(15, 8))
+                sns.pairplot(df_numeric, 
+                 markers="+",
+                 diag_kind="kde",
+                 kind='reg',
+                 plot_kws={'line_kws':{'color':'#aec6cf'}, 
+                           'scatter_kws': {'alpha': 0.7, 
+                                           'color': 'red'}},
+                 corner=True);
+             
+                # Salva o boxplot como uma imagem
+                caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_pairplot_numerical.png')
+                plt.savefig(caminho_arquivo)
+                pbar.update(1)
+            finally:
+                plt.close('all')
+
+           
+def gerar_e_salvar_graficos_heatmap(df, nome_prefixo):
+   
+ with tqdm(total=len(df), desc="Gerando gráficos parte 10") as pbar:   
+    with plt.rc_context(rc={'figure.max_open_warning': 0}):
+            try:
+                plt.figure(figsize=(20, 20))
+                # Plote a matriz de gráficos de dispersão
+                sns.heatmap(df.corr(),annot=True,square=True,
+                cmap='RdBu',
+                vmax=1,
+                vmin=-1)
+                plt.xticks(size=13)
+                plt.yticks(size=13)
+             
+                # Salva o boxplot como uma imagem
+                caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_heatmap.png')
+                plt.savefig(caminho_arquivo)
+                pbar.update(1)
+            finally:
+                plt.close('all')
+                
 @analise.route('/')
 def index():
     return render_template('index.html')
@@ -450,10 +519,11 @@ def index():
 @analise.route('/gerar_graficos')
 def gerar_graficos():
     df = get_dataframe(sql_comando)
-    gerar_e_salvar_graficos(df, campos, 'df')
     df1 = get_dataframe1(sql_comando1)
-    gerar_e_salvar_graficos(df1, campos1, 'df1')
     df2 = get_dataframe2(sql_comando2)
+    
+    gerar_e_salvar_graficos(df, campos, 'df')
+    gerar_e_salvar_graficos(df1, campos1, 'df1')
     gerar_e_salvar_graficos(df2, campos2, 'df2')
     gerar_e_salvar_graficos3(df, campos, 'df')
     gerar_e_salvar_graficos4(df1, campos1, 'df1')
@@ -461,10 +531,18 @@ def gerar_graficos():
     gerar_e_salvar_graficos_pairplot(df, campos, 'df')
     gerar_e_salvar_graficos_pairplot(df1, campos1, 'df1')
     gerar_e_salvar_graficos_pairplot(df2, campos2, 'df2')
-    gerar_e_salvar_graficos_scatterplot(df, campos, 'df')
+    gerar_e_salvar_graficos_pairplot_numerical_values(df, campos, 'df')
+    gerar_e_salvar_graficos_pairplot_numerical_values(df1, campos1, 'df1')
+    gerar_e_salvar_graficos_pairplot_numerical_values(df2, campos2, 'df2')
+    gerar_e_salvar_graficos_scatterplot(df, campos, 'df')        
     gerar_e_salvar_graficos_scatterplot(df1, campos1, 'df1')
     gerar_e_salvar_graficos_scatterplot(df2, campos2, 'df2')
+    gerar_e_salvar_graficos_heatmap(df, 'df')       
+    gerar_e_salvar_graficos_heatmap(df1, 'df1')
+    gerar_e_salvar_graficos_heatmap(df2, 'df2')
+    
     return "Gráficos gerados e salvos com sucesso!"
+
 
 @analise.route('/dashboard_um')
 def dashboard_um():
@@ -506,8 +584,11 @@ def dashboard_um():
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
     caminhos_graficos4 = [f'graficos/df_pairplot.png']
     caminhos_graficos7 = [f'graficos/df_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
+    caminhos_graficos10 = [f'graficos/df_heatmap.png']
+    caminhos_graficos11 = [f'graficos/df_pairplot_numerical.png']
 
-    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 )
+    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
+                           caminhos_graficos11=caminhos_graficos11  )
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -547,8 +628,11 @@ def dashboard_dois():
     caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
     caminhos_graficos5 = [f'graficos/df1_pairplot.png']
     caminhos_graficos8 = [f'graficos/df1_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
+    caminhos_graficos12 = [f'graficos/df1_heatmap.png']
+    caminhos_graficos13 = [f'graficos/df1_pairplot_numerical.png']
 
-    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8 )
+    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
+                           caminhos_graficos13=caminhos_graficos13  )
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -589,8 +673,11 @@ def dashboard_tres():
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
     caminhos_graficos6 = [f'graficos/df2_pairplot.png']
     caminhos_graficos9 = [f'graficos/df2_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
+    caminhos_graficos14 = [f'graficos/df2_heatmap.png']
+    caminhos_graficos15 = [f'graficos/df2_pairplot_numerical.png']
 
-    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9 )
+    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
+                           caminhos_graficos15=caminhos_graficos15 )
 
 
 # Rota para exibir um gráfico específico
