@@ -9,6 +9,16 @@ import os
 from io import StringIO
 import itertools
 from tqdm import tqdm
+from time import time
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import metrics
+from sklearn.cluster import KMeans
+from sklearn import preprocessing
+from sklearn.preprocessing import scale
+from sklearn.decomposition import PCA
+import numpy as np
+from sklearn.impute import SimpleImputer
 mpl.rcParams['figure.max_open_warning'] = 50
 
 analise = Flask(__name__)
@@ -568,6 +578,20 @@ def dashboard_um():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
+    Soma_distancia_quadratica = []
+    K = range(1,10)
+    for k in K:
+     km = KMeans(n_clusters=k)
+     km = km.fit(df)
+     Soma_distancia_quadratica.append(km.inertia_)
+     
+    plt.plot(K, Soma_distancia_quadratica, 'b+-')
+    plt.xlabel('k')
+    plt.ylabel('Soma das distâncias quadráticas')
+    plt.title('Método de Elbow para identificar o melhor valor do parâmetro k')
+    caminho_arquivo = os.path.join(graficos_dir, 'df_cotovelo.png')
+    plt.savefig(caminho_arquivo)
+
     dados_texto = {
         'colunas': df.columns.tolist(),
         'dados_originais': df.head(5).to_html(classes='table'),
@@ -576,9 +600,10 @@ def dashboard_um():
         'describe': df.describe().to_html(classes='table'),
         #'describe_include0': df.describe(include='O').to_html(classes='table'),
         'limpeza': df.isnull().sum(),
-        'correlacoes': correlacoes
+        'correlacoes': correlacoes,
+        'soma_quadratica': Soma_distancia_quadratica
     }
-
+    
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
@@ -586,9 +611,10 @@ def dashboard_um():
     caminhos_graficos7 = [f'graficos/df_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
     caminhos_graficos10 = [f'graficos/df_heatmap.png']
     caminhos_graficos11 = [f'graficos/df_pairplot_numerical.png']
+    caminhos_graficos16 = [f'graficos/df_cotovelo.png']
 
     return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
-                           caminhos_graficos11=caminhos_graficos11  )
+                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16 )
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -613,6 +639,26 @@ def dashboard_dois():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
+   
+
+    imputer = SimpleImputer(strategy='mean')
+    df1_filled = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
+
+    Soma_distancia_quadratica = []
+    K = range(1,10)
+    for k in K:
+     km = KMeans(n_clusters=k)
+     km = km.fit(df1_filled)
+     Soma_distancia_quadratica.append(km.inertia_)
+     
+    plt.plot(K, Soma_distancia_quadratica, 'b+-')
+    plt.xlabel('k')
+    plt.ylabel('Soma das distâncias quadráticas')
+    plt.title('Método de Elbow para identificar o melhor valor do parâmetro k')
+    caminho_arquivo = os.path.join(graficos_dir, 'df1_cotovelo.png')
+    plt.savefig(caminho_arquivo)
+
+
     dados_texto = {
         'colunas': df1.columns.tolist(),
         'dados_originais': df1.head(5).to_html(classes='table'),
@@ -621,7 +667,8 @@ def dashboard_dois():
         'describe': df1.describe().to_html(classes='table'),
         #'describe_include0': df1.describe(include='O').to_html(classes='table'),
         'limpeza': df1.isnull().sum(),
-        'correlacoes': correlacoes
+        'correlacoes': correlacoes,
+        'soma_quadratica': Soma_distancia_quadratica
     }
     
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
@@ -630,9 +677,11 @@ def dashboard_dois():
     caminhos_graficos8 = [f'graficos/df1_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
     caminhos_graficos12 = [f'graficos/df1_heatmap.png']
     caminhos_graficos13 = [f'graficos/df1_pairplot_numerical.png']
+    caminhos_graficos17 = [f'graficos/df1_cotovelo.png']
+
 
     return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
-                           caminhos_graficos13=caminhos_graficos13  )
+                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17  )
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -657,6 +706,23 @@ def dashboard_tres():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
+    imputer = SimpleImputer(strategy='mean')
+    df2_filled = pd.DataFrame(imputer.fit_transform(df2), columns=df2.columns)
+
+    Soma_distancia_quadratica = []
+    K = range(1,10)
+    for k in K:
+     km = KMeans(n_clusters=k)
+     km = km.fit(df2_filled)
+     Soma_distancia_quadratica.append(km.inertia_)
+     
+    plt.plot(K, Soma_distancia_quadratica, 'b+-')
+    plt.xlabel('k')
+    plt.ylabel('Soma das distâncias quadráticas')
+    plt.title('Método de Elbow para identificar o melhor valor do parâmetro k')
+    caminho_arquivo = os.path.join(graficos_dir, 'df2_cotovelo.png')
+    plt.savefig(caminho_arquivo)
+
     dados_texto = {
         'colunas': df2.columns.tolist(),
         'dados_originais': df2.head(5).to_html(classes='table'),
@@ -665,19 +731,21 @@ def dashboard_tres():
         'describe': df2.describe().to_html(classes='table'),
        # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
         'limpeza': df2.isnull().sum(),
-        'correlacoes': correlacoes
+        'correlacoes': correlacoes,
+        'soma_quadratica': Soma_distancia_quadratica
     }
 
- 
+
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
     caminhos_graficos6 = [f'graficos/df2_pairplot.png']
     caminhos_graficos9 = [f'graficos/df2_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
     caminhos_graficos14 = [f'graficos/df2_heatmap.png']
     caminhos_graficos15 = [f'graficos/df2_pairplot_numerical.png']
+    caminhos_graficos18 = [f'graficos/df2_cotovelo.png']
 
     return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
-                           caminhos_graficos15=caminhos_graficos15 )
+                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18 )
 
 
 # Rota para exibir um gráfico específico

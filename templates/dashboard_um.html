@@ -20,6 +20,20 @@
     <p><strong>Limpeza:</strong></p>
     <div>{{ dados_texto.limpeza | safe }}</div>
 
+    <h1>Soma quadratica:</h1>
+    <ul>
+        {% for valor in dados_texto.soma_quadratica %}
+          <li>{{ valor }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Cotovelo</h1>
+    {% for caminho in caminhos_graficos16 %}
+    <div>
+          <img src="{{ url_for('static', filename=caminho) }}" alt="Cotovelo">
+    {% endfor %}
+    </div>
+
     <h1>Correlations</h1>
     {% for chave, valor in dados_texto.correlacoes.items() %}
     <p>Correlação entre {{ chave }}: <strong>{{ valor }}</strong></p>
