@@ -19,6 +19,9 @@ from sklearn.preprocessing import scale
 from sklearn.decomposition import PCA
 import numpy as np
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 mpl.rcParams['figure.max_open_warning'] = 50
 
 analise = Flask(__name__)
@@ -578,19 +581,34 @@ def dashboard_um():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
+    scaler = StandardScaler()
+    df_std = scaler.fit_transform(df)
+    df_std = pd.DataFrame(data = df_std,columns = df.columns)
+
+    #imputer = SimpleImputer(strategy='mean')
+    #df2_filled = pd.DataFrame(imputer.fit_transform(df2), columns=df2.columns)
+
     Soma_distancia_quadratica = []
-    K = range(1,10)
+    K = range(1,11)
     for k in K:
-     km = KMeans(n_clusters=k)
-     km = km.fit(df)
+     km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
+     km = km.fit(df_std)
      Soma_distancia_quadratica.append(km.inertia_)
-     
-    plt.plot(K, Soma_distancia_quadratica, 'b+-')
-    plt.xlabel('k')
-    plt.ylabel('Soma das distâncias quadráticas')
-    plt.title('Método de Elbow para identificar o melhor valor do parâmetro k')
+    
+    plt.figure(figsize = (10,8))
+    plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Soma_distancia_quadratica')
+    plt.title('K-means Clustering')
     caminho_arquivo = os.path.join(graficos_dir, 'df_cotovelo.png')
     plt.savefig(caminho_arquivo)
+
+    kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
+    kmeans.fit(df_std)
+    df_segm_kmeans= df_std.copy()
+    df_std['Segment K-means'] = kmeans.labels_
+    df_segm_analysis = df_std.groupby(['Segment K-means']).mean()
+    df_segm_analysis
 
     dados_texto = {
         'colunas': df.columns.tolist(),
@@ -706,14 +724,18 @@ def dashboard_tres():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
-    imputer = SimpleImputer(strategy='mean')
-    df2_filled = pd.DataFrame(imputer.fit_transform(df2), columns=df2.columns)
+    scaler = StandardScaler()
+    df2_std = scaler.fit_transform(df2)
+    df2_std = pd.DataFrame(data = df2_std,columns = df2.columns)
+
+    #imputer = SimpleImputer(strategy='mean')
+    #df2_filled = pd.DataFrame(imputer.fit_transform(df2), columns=df2.columns)
 
     Soma_distancia_quadratica = []
-    K = range(1,10)
+    K = range(1,11)
     for k in K:
-     km = KMeans(n_clusters=k)
-     km = km.fit(df2_filled)
+     km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
+     km = km.fit(df2_std)
      Soma_distancia_quadratica.append(km.inertia_)
      
     plt.plot(K, Soma_distancia_quadratica, 'b+-')

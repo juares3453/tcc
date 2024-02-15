@@ -8,8 +8,7 @@ adicionar algumas variáveis as informações
 - numero de caminhoes que podem ser carregados pra poderem sair pra entrega na parte da manha
 
 
-- ajustar dados de custo 
-- finalizar analise de graficos
+- ajustar dados de custo
 - analisar os graficos
 - colocar nos algoritmos
 
