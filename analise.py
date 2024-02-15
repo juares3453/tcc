@@ -516,6 +516,7 @@ def gerar_e_salvar_graficos_heatmap(df, nome_prefixo):
                 vmin=-1)
                 plt.xticks(size=13)
                 plt.yticks(size=13)
+                plt.yticks(rotation =0)
              
                 # Salva o boxplot como uma imagem
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_heatmap.png')
@@ -585,9 +586,6 @@ def dashboard_um():
     df_std = scaler.fit_transform(df)
     df_std = pd.DataFrame(data = df_std,columns = df.columns)
 
-    #imputer = SimpleImputer(strategy='mean')
-    #df2_filled = pd.DataFrame(imputer.fit_transform(df2), columns=df2.columns)
-
     Soma_distancia_quadratica = []
     K = range(1,11)
     for k in K:
@@ -603,7 +601,7 @@ def dashboard_um():
     caminho_arquivo = os.path.join(graficos_dir, 'df_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
-    kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
+    kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
     kmeans.fit(df_std)
     df_segm_kmeans= df_std.copy()
     df_std['Segment K-means'] = kmeans.labels_
@@ -619,7 +617,8 @@ def dashboard_um():
         #'describe_include0': df.describe(include='O').to_html(classes='table'),
         'limpeza': df.isnull().sum(),
         'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica
+        'soma_quadratica': Soma_distancia_quadratica,
+        'df_segm_analysis': df_segm_analysis
     }
     
     # Lista para armazenar os caminhos dos gráficos
@@ -658,24 +657,34 @@ def dashboard_dois():
                 correlacoes[chave] = correlacao
 
    
-
-    imputer = SimpleImputer(strategy='mean')
-    df1_filled = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
+    # Remove rows with missing values
+    df1.dropna(inplace=True)       
+    
+    scaler = StandardScaler()
+    df1_std = scaler.fit_transform(df1)
+    df1_std = pd.DataFrame(data = df1_std,columns = df1.columns)
 
     Soma_distancia_quadratica = []
-    K = range(1,10)
+    K = range(1,11)
     for k in K:
-     km = KMeans(n_clusters=k)
-     km = km.fit(df1_filled)
+     km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
+     km = km.fit(df1_std)
      Soma_distancia_quadratica.append(km.inertia_)
      
-    plt.plot(K, Soma_distancia_quadratica, 'b+-')
-    plt.xlabel('k')
-    plt.ylabel('Soma das distâncias quadráticas')
-    plt.title('Método de Elbow para identificar o melhor valor do parâmetro k')
+    plt.figure(figsize = (10,8))
+    plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Soma_distancia_quadratica')
+    plt.title('K-means Clustering')
     caminho_arquivo = os.path.join(graficos_dir, 'df1_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
+    kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
+    kmeans.fit(df1_std)
+    df1_segm_kmeans= df1_std.copy()
+    df1_std['Segment K-means'] = kmeans.labels_
+    df1_segm_analysis = df1_std.groupby(['Segment K-means']).mean()
+    df1_segm_analysis
 
     dados_texto = {
         'colunas': df1.columns.tolist(),
@@ -686,7 +695,8 @@ def dashboard_dois():
         #'describe_include0': df1.describe(include='O').to_html(classes='table'),
         'limpeza': df1.isnull().sum(),
         'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica
+        'soma_quadratica': Soma_distancia_quadratica,
+        'df_segm_analysis': df1_segm_analysis
     }
     
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
@@ -724,12 +734,12 @@ def dashboard_tres():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
+    # Remove rows with missing values
+    df2.dropna(inplace=True)       
+
     scaler = StandardScaler()
     df2_std = scaler.fit_transform(df2)
     df2_std = pd.DataFrame(data = df2_std,columns = df2.columns)
-
-    #imputer = SimpleImputer(strategy='mean')
-    #df2_filled = pd.DataFrame(imputer.fit_transform(df2), columns=df2.columns)
 
     Soma_distancia_quadratica = []
     K = range(1,11)
@@ -738,12 +748,20 @@ def dashboard_tres():
      km = km.fit(df2_std)
      Soma_distancia_quadratica.append(km.inertia_)
      
-    plt.plot(K, Soma_distancia_quadratica, 'b+-')
-    plt.xlabel('k')
-    plt.ylabel('Soma das distâncias quadráticas')
-    plt.title('Método de Elbow para identificar o melhor valor do parâmetro k')
+    plt.figure(figsize = (10,8))
+    plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Soma_distancia_quadratica')
+    plt.title('K-means Clustering')
     caminho_arquivo = os.path.join(graficos_dir, 'df2_cotovelo.png')
     plt.savefig(caminho_arquivo)
+
+    kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
+    kmeans.fit(df2_std)
+    df2_segm_kmeans= df2_std.copy()
+    df2_std['Segment'] = kmeans.labels_
+    df2_segm_analysis = df2_std.groupby(['Segment']).mean()
+    df2_to_dict = df2_segm_analysis.to_dict()
 
     dados_texto = {
         'colunas': df2.columns.tolist(),
@@ -754,9 +772,9 @@ def dashboard_tres():
        # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
         'limpeza': df2.isnull().sum(),
         'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica
+        'soma_quadratica': Soma_distancia_quadratica,
+        'df_segm_analysis': df2_to_dict
     }
-
 
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
