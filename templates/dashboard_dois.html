@@ -77,5 +77,19 @@
           <img src="{{ url_for('static', filename=caminho) }}" alt="Cotovelo">
     {% endfor %}
     </div>
+
+    <h2>Segmentação de dados:</h2>
+    <table border="1">
+        <tr>
+            <th>Dados</th>
+            <th>Segmentos Kmeans</th>
+        </tr>
+        {% for segmento, valores in dados_texto.df_segm_analysis.items() %}
+        <tr>
+            <td>{{ segmento }}</td>
+            <td>{{ valores }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

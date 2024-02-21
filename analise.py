@@ -604,9 +604,9 @@ def dashboard_um():
     kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
     kmeans.fit(df_std)
     df_segm_kmeans= df_std.copy()
-    df_std['Segment K-means'] = kmeans.labels_
-    df_segm_analysis = df_std.groupby(['Segment K-means']).mean()
-    df_segm_analysis
+    df_std['Segment'] = kmeans.labels_
+    df_segm_analysis = df_std.groupby(['Segment']).mean()
+    df_to_dict = df_segm_analysis.to_dict()
 
     dados_texto = {
         'colunas': df.columns.tolist(),
@@ -618,7 +618,7 @@ def dashboard_um():
         'limpeza': df.isnull().sum(),
         'correlacoes': correlacoes,
         'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df_segm_analysis
+        'df_segm_analysis': df_to_dict
     }
     
     # Lista para armazenar os caminhos dos gráficos
@@ -682,9 +682,9 @@ def dashboard_dois():
     kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
     kmeans.fit(df1_std)
     df1_segm_kmeans= df1_std.copy()
-    df1_std['Segment K-means'] = kmeans.labels_
-    df1_segm_analysis = df1_std.groupby(['Segment K-means']).mean()
-    df1_segm_analysis
+    df1_std['Segment'] = kmeans.labels_
+    df1_segm_analysis = df1_std.groupby(['Segment']).mean()
+    df1_to_dict = df1_segm_analysis.to_dict()
 
     dados_texto = {
         'colunas': df1.columns.tolist(),
@@ -696,7 +696,7 @@ def dashboard_dois():
         'limpeza': df1.isnull().sum(),
         'correlacoes': correlacoes,
         'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df1_segm_analysis
+        'df_segm_analysis': df1_to_dict
     }
     
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
