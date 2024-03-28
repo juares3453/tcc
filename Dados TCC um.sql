@@ -12,11 +12,11 @@ select
 	Filial,
 	CASE
 		WHEN ISNULL(QtConfLeitorCar,0) = 0 THEN '0' 
-		WHEN QtConfLeitorCar > 0 THEN '1'
+		WHEN QtConfLeitorCar > 0 THEN QtConfLeitorCar
 	END AS conf_carregamento,
 	CASE
 		WHEN ISNULL(QtConfLeitorSmart,0) = 0 THEN '0' 
-		WHEN QtConfLeitorSmart > 0 THEN '1'
+		WHEN QtConfLeitorSmart > 0 THEN QtConfLeitorSmart
 	END AS conf_entrega,
 	DATEDIFF(HOUR, CONVERT(time, HrSaida), CONVERT(time, HrChegada)) as tempo_total,
 	KM_C - KM_S as km_rodado,

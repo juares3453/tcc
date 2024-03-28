@@ -34,11 +34,11 @@ WITH Dados AS (
         B.DsAnoFabricacao,
         CASE
             WHEN ISNULL(A.QtConfLeitorCar, 0) = 0 THEN '0'
-            WHEN A.QtConfLeitorCar > 0 THEN '1'
+            WHEN A.QtConfLeitorCar > 0 THEN A.QtConfLeitorSmart
         END AS conf_carregamento,
         CASE
             WHEN ISNULL(A.QtConfLeitorSmart, 0) = 0 THEN '0'
-            WHEN A.QtConfLeitorSmart > 0 THEN '1'
+            WHEN A.QtConfLeitorSmart > 0 THEN A.QtConfLeitorSmart
         END AS conf_entrega,
         DATEDIFF(HOUR, CONVERT(time, A.HrSaida), CONVERT(time, A.HrChegada)) AS tempo_total,
         A.KM_C - A.KM_S AS km_rodado,
