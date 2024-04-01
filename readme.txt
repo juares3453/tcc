@@ -1,6 +1,4 @@
-adicionar algumas variáveis as informações 
-
-- tempo
+adicionar algumas variáveis as informações:
 - trajeto de transferencia
 - produtividade de cada filial e como calcular isso
 - vazao de cada local
@@ -11,7 +9,3 @@ adicionar algumas variáveis as informações
 - ajustar dados de custo
 - analisar os graficos
 - colocar nos algoritmos
-- ver tempo total de entrega pela bti (tentar pegar tempo da atividade, tempo da demora da entrega)
-- pegar do relatorio de leituras o inicio e fim do processo de leitura da transferncia ate o final
-
-
