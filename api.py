@@ -5,8 +5,9 @@ import xml.etree.ElementTree as ET
 # Dados para enviar na requisição, já ajustados conforme seu exemplo
 data = {
   "locations": [
-    "Ponta Grossa",
-    "Minas Gerais"
+    "80330180",
+    "81280350",
+    "83203060"
   ],
   "config": {
     "route": {
@@ -112,4 +113,4 @@ print(f"Tarifa para carga geral: {valor_frete}")
 print(f"Distância: {distancia_t}")
 print(f"Duração: {duracao_t}")
 print(f"Abast: {combustivel}")
-print(f"Abast: {total_tarifas_pedagios}")
+print(f"Pedágio: {total_tarifas_pedagios}")
