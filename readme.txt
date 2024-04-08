@@ -71,3 +71,116 @@ WHERE
     AND KM_C > 0
 ORDER BY 
     Ano, Mes, Dia
+
+    # Cabeçalhos da requisição
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8wLjAuMC4wOjgwMDFcL2FwaVwvdmVsb2dcL2F1dGgiLCJpYXQiOjE3MTI1NDM5MjcsImV4cCI6MTcxNzcyNzkyNywibmJmIjoxNzEyNTQzOTI3LCJqdGkiOiJiVGo3TUw4NG9TQ05QS3REIiwiYWN0aW9uIjoiIiwiaWQiOjY1NDEsInRva2VuIjoiIn0.jbpq7JrUrkPc9kP1kmRMTaxwyJ33AqGGVILz31qgyLs'
+}
+
+
+# Dados para enviar na requisição, já ajustados conforme seu exemplo
+data = {
+"sn_lat_lng": False,
+"sn_rota_alternativa": False,
+"sn_pedagio": True,
+"sn_balanca": True,
+"sn_calcu_volta": True,
+"tag": "TRUCK",
+"qtd_eixos": 6,
+"veiculo_km_litro": 3.00,
+"valor_medio_combustivel": 6.00,
+"rotas": [
+  {
+    "cep": 95700000,
+  },
+  {
+    "cep": 95700000,
+  }
+]
+}
+# Fazendo a requisição POST
+response = requests.post('https://velog.vertti.com.br/api/velog/roteiro', json=data, headers=headers)
+
+print(response.json()) 
+
+if response.status_code == 200:
+    print(response.json()) 
+else:
+    print(f"Erro na requisição: {response.status_code}")
+    
+    # Configurações da conexão com o banco de dados
+server = 'JUARES-PC'
+database = 'softran_rasador'
+username = 'sa'
+password = 'sof1209'
+connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=SQL+Server'
+engine = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+cursor = engine.cursor()
+
+# Sua consulta SQL para buscar os dados
+sql_query = """
+SELECT distinct top 1
+    DATEPART(day, A.data) AS Dia,
+    DATEPART(month, A.data) AS Mes,
+    DATEPART(year, A.data) AS Ano,
+    A.CdEmpresa,
+	B.NrPlaca,
+    C.DsTpVeiculo,
+    D.DsModelo,
+    B.DsAnoFabricacao,
+    ISNULL(A.QtConfLeitorCar, 0) AS conf_carregamento,
+    ISNULL(A.QtConfLeitorSmart, 0) AS conf_entrega,
+    DATEDIFF(HOUR, CONVERT(time, A.HrSaida), CONVERT(time, A.HrChegada)) AS tempo_total,
+    A.KM_C - A.KM_S AS km_rodado,
+    A.NrAuxiliares AS auxiliares,
+    A.VlCapacVeic AS capacidade,
+    E.CdRomaneio,
+	E.NrCep
+FROM TC_HistEntregaFilial A
+INNER JOIN SISVeicu B ON A.NrPlaca = B.NrPlaca
+LEFT JOIN Sistpvei C ON B.CdTipoVeiculo = C.CdTpVeiculo
+LEFT JOIN SISMdVei D ON B.CdModelo = D.CdModelo
+LEFT JOIN CCERomIt E ON A.CdRomaneio = E.CdRomaneio AND A.CdEmpresa = E.CdEmpresa
+WHERE ISDATE(A.HrChegada) = 1 
+  AND ISDATE(A.HrSaida) = 1 
+  AND A.KM_C <> 0 
+  AND A.KM_C > A.KM_S
+  AND E.CdRomaneio is not null
+order by CdRomaneio
+"""
+cursor.execute(sql_query)
+
+def geocode_address(cep):
+    api_key = "sua_api_key_aqui"  # Substitua pelo seu API Key real
+    base_url = "https://geocode.maps.co/search"
+    params = {"q": cep, "api_key": api_key}
+    response = requests.get(base_url, params=params)
+    
+    if response.status_code == 200:
+        data = response.json()
+        if data and 'features' in data and len(data['features']) > 0:
+            # Supondo que a estrutura inclui uma chave 'features' com os resultados
+            lat = data['features'][0]['geometry']['coordinates'][1]  # Latitude
+            lon = data['features'][0]['geometry']['coordinates'][0]  # Longitude
+            return lat, lon
+        else:
+            print("Nenhum resultado encontrado para o CEP fornecido.")
+            return None, None
+    else:
+        print(f"Erro na requisição da API de geocodificação: HTTP {response.status_code}")
+        return None, None
+
+# Iterar sobre os resultados
+for row in cursor.fetchall():
+    dia, mes, ano, cdEmpresa, nrPlaca, dsTpVeiculo, dsModelo, dsAnoFabricacao, conf_carregamento, conf_entrega, tempo_total, km_rodado, auxiliares, capacidade, cdRomaneio, nrCep = row
+
+    # Usar o CEP para obter as coordenadas
+    lat, lon = geocode_address(nrCep)
+    if lat is not None and lon is not None:
+        print(f"Coordenadas para o CEP {nrCep}: Latitude {lat}, Longitude {lon}")
+    else:
+        print(f"Não foi possível encontrar coordenadas para o CEP {nrCep}")
+
+# Não esqueça de fechar a conexão
+cursor.close()
