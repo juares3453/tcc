@@ -9,6 +9,7 @@ from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from sqlalchemy import create_engine
 import time
+from tqdm import tqdm
 
 server = 'JUARES-PC'
 database = 'softran_rasador'
@@ -24,12 +25,12 @@ engine = create_engine(connection_string)
 
 # Sua consulta SQL para buscar os dados
 sql_query = """
-SELECT distinct
+SELECT DISTINCT
     DATEPART(day, A.data) AS Dia,
     DATEPART(month, A.data) AS Mes,
     DATEPART(year, A.data) AS Ano,
     A.CdEmpresa,
-	B.NrPlaca,
+    B.NrPlaca,
     C.DsTpVeiculo,
     D.DsModelo,
     B.DsAnoFabricacao,
@@ -40,47 +41,59 @@ SELECT distinct
     A.NrAuxiliares AS auxiliares,
     A.VlCapacVeic AS capacidade,
     E.CdRomaneio,
-	E.NrCep
+    E.NrCep
 FROM TC_HistEntregaFilial A
 INNER JOIN SISVeicu B ON A.NrPlaca = B.NrPlaca
 LEFT JOIN Sistpvei C ON B.CdTipoVeiculo = C.CdTpVeiculo
 LEFT JOIN SISMdVei D ON B.CdModelo = D.CdModelo
 LEFT JOIN CCERomIt E ON A.CdRomaneio = E.CdRomaneio AND A.CdEmpresa = E.CdEmpresa
-WHERE ISDATE(A.HrChegada) = 1 
-  AND ISDATE(A.HrSaida) = 1 
-  AND A.KM_C <> 0 
+WHERE ISDATE(A.HrChegada) = 1
+  AND ISDATE(A.HrSaida) = 1
+  AND A.KM_C <> 0
   AND A.KM_C > A.KM_S
-  AND E.CdRomaneio is not null
-order by CdRomaneio
+  AND E.CdRomaneio IS NOT NULL
+ORDER BY E.CdRomaneio;
 """
 
 # Executando a consulta e armazenando os resultados em um DataFrame
 df = pd.read_sql(sql_query, engine)
 engine.dispose()
 
-# Configure um agente de usuário customizado com seu email ou URL do seu aplicativo
-geolocator = Nominatim(user_agent="juarescanalle@gmail.com")
-
-# Configure um RateLimiter para adicionar atrasos entre as solicitações
-# e aumente o tempo limite para 10 segundos
+geolocator = Nominatim(user_agent="seu_nome_de_aplicativo", timeout=10)
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1, error_wait_seconds=10)
 
-# Função para aplicar geocodificação
-def geocode_address(cep):
+def geocode_address(row):
     try:
-        location = geocode(f"{cep}, Brasil")
-        return (location.latitude, location.longitude) if location else (None, None)
-    except:
-        return (None, None)
+        # Aqui usamos o CEP diretamente da linha
+        location = geocode(f"{row['NrCep']}, Brasil")
+        if location:
+            return pd.Series([location.latitude, location.longitude])
+        else:
+            return pd.Series([None, None])
+    except Exception as e:
+        print(f"Erro ao geocodificar {row['NrCep']}: {e}")
+        return pd.Series([None, None])
 
-# Aplicando geocodificação no DataFrame
-df['latitude_longitude'] = df['NrCep'].apply(geocode_address)
 
-# Separando as tuplas de latitude e longitude em colunas distintas
-df[['latitude', 'longitude']] = pd.DataFrame(df['latitude_longitude'].tolist(), index=df.index)
+# Antes de aplicar a geocodificação, criamos a barra de progresso usando tqdm
+# `tqdm.pandas()` patch o pandas apply para mostrar a barra de progresso
+tqdm.pandas(desc="Geocodificando CEPs")
 
-time.sleep(1)
-# Salvando o DataFrame enriquecido em um novo arquivo CSV
-df.to_csv('dados_enriquecidos.csv', index=False)
+# Usamos `apply` com `axis=1` para passar a linha inteira à função
+df[['latitude', 'longitude']] = df.progress_apply(geocode_address, axis=1)
+
+# Não há necessidade de usar time.sleep(1) no final do script, a menos que você queira atrasar deliberadamente a execução do script por algum motivo
+# Salva o DataFrame modificado
+#df.to_csv("dados_enriquecidos.csv", index=False)
+
+# Defina o nome da tabela onde você deseja inserir os dados
+table_name = "TC_HistEntregaFilialLatLon"
+
+# Insere os dados no banco, substituindo a tabela se ela já existir.
+# A opção 'replace' é usada para substituir a tabela se ela já existir. Se desejar adicionar dados a uma tabela existente sem substituí-la, use 'append'.
+# O parâmetro 'index=False' evita que o índice do DataFrame seja inserido como uma coluna na tabela do banco de dados.
+# A opção 'if_exists' pode ser ajustada para 'append' se desejar adicionar os dados a uma tabela existente sem apagá-la.
+df.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
+
 
 print("Dados enriquecidos salvos com sucesso!")
