@@ -109,47 +109,7 @@ if response.status_code == 200:
 else:
     print(f"Erro na requisição: {response.status_code}")
     
-    # Configurações da conexão com o banco de dados
-server = 'JUARES-PC'
-database = 'softran_rasador'
-username = 'sa'
-password = 'sof1209'
-connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=SQL+Server'
-engine = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
-cursor = engine.cursor()
 
-# Sua consulta SQL para buscar os dados
-sql_query = """
-SELECT distinct top 1
-    DATEPART(day, A.data) AS Dia,
-    DATEPART(month, A.data) AS Mes,
-    DATEPART(year, A.data) AS Ano,
-    A.CdEmpresa,
-	B.NrPlaca,
-    C.DsTpVeiculo,
-    D.DsModelo,
-    B.DsAnoFabricacao,
-    ISNULL(A.QtConfLeitorCar, 0) AS conf_carregamento,
-    ISNULL(A.QtConfLeitorSmart, 0) AS conf_entrega,
-    DATEDIFF(HOUR, CONVERT(time, A.HrSaida), CONVERT(time, A.HrChegada)) AS tempo_total,
-    A.KM_C - A.KM_S AS km_rodado,
-    A.NrAuxiliares AS auxiliares,
-    A.VlCapacVeic AS capacidade,
-    E.CdRomaneio,
-	E.NrCep
-FROM TC_HistEntregaFilial A
-INNER JOIN SISVeicu B ON A.NrPlaca = B.NrPlaca
-LEFT JOIN Sistpvei C ON B.CdTipoVeiculo = C.CdTpVeiculo
-LEFT JOIN SISMdVei D ON B.CdModelo = D.CdModelo
-LEFT JOIN CCERomIt E ON A.CdRomaneio = E.CdRomaneio AND A.CdEmpresa = E.CdEmpresa
-WHERE ISDATE(A.HrChegada) = 1 
-  AND ISDATE(A.HrSaida) = 1 
-  AND A.KM_C <> 0 
-  AND A.KM_C > A.KM_S
-  AND E.CdRomaneio is not null
-order by CdRomaneio
-"""
-cursor.execute(sql_query)
 
 def geocode_address(cep):
     api_key = "sua_api_key_aqui"  # Substitua pelo seu API Key real

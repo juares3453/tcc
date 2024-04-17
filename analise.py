@@ -43,7 +43,7 @@ connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driv
 engine = create_engine(connection_str)
 
 # Lista de campos
-campos = ['Mes', 'Ano', 'Filial', 'conf_carregamento', 'conf_entrega', 'Dia', 
+campos = ['Dia', 'Mes', 'Ano', 'Filial', 'conf_carregamento', 'conf_entrega',
           'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total',
           'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 
           'peso_entregue', 'frete_total', 'frete_entregue']
