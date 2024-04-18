@@ -17,7 +17,6 @@ engine = create_engine(connection_string)
 # Define schema
 metadata = MetaData()
 resultados_api = Table('ResumoViagem', metadata,
-                       Column('Id', Integer, primary_key=True, autoincrement=True),
                        Column('CdEmpresa', Integer),
                        Column('CdRomaneio', Integer),
                        Column('TotalDistancia', Float),
