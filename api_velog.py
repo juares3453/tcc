@@ -95,13 +95,7 @@ def insert_data(empresa, romaneio, distance, duration, pedagio, combustivel, via
         conn.commit()  # Ensure to commit the transaction
 
     # API Call and data processing
-response = requests.post(
-    'https://velog.vertti.com.br/api/velog/roteiro',
-    json=data,
-    headers=headers,
-    timeout=10  # Timeout in seconds
-)
-
+response = requests.post('https://velog.vertti.com.br/api/velog/roteiro', json=data, headers=headers)
 if response.status_code == 200:
     track_info = response.json()[0]['track']  # Assuming correct path to data
     for rota in track_info.get('rotas', []):
