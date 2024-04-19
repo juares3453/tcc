@@ -27,20 +27,6 @@ resultados_api = Table('ResumoViagem', metadata,
                        )
 metadata.create_all(engine)
 
-# Consulta SQL para carregar dados
-sql_query = """
-SELECT A.*, B.latitude AS LatOrigem, B.longitude AS LongOrigem FROM TC_HistEntregaFilialLatLon A
-LEFT JOIN TC_HistEntregaFilialLatLonEmpresa B ON A.CdEmpresa = B.CdEmpresa 
-WHERE A.latitude IS NOT NULL
-"""
-df = pd.read_sql_query(sql_query, engine)
-
-# Cabeçalhos da requisição para a API
-headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8wLjAuMC4wOjgwMDFcL2FwaVwvdmVsb2dcL2F1dGgiLCJpYXQiOjE3MTI1NDM5MjcsImV4cCI6MTcxNzcyNzkyNywibmJmIjoxNzEyNTQzOTI3LCJqdGkiOiJiVGo3TUw4NG9TQ05QS3REIiwiYWN0aW9uIjoiIiwiaWQiOjY1NDEsInRva2VuIjoiIn0.jbpq7JrUrkPc9kP1kmRMTaxwyJ33AqGGVILz31qgyLs'
-}
-
 # Data insertion function
 def insert_data(empresa, romaneio, distance, duration, pedagio, combustivel, viagem):
     with engine.connect() as conn:
@@ -56,9 +42,22 @@ def insert_data(empresa, romaneio, distance, duration, pedagio, combustivel, via
         conn.execute(stmt)
         conn.commit()  # Ensure to commit the transaction
 
+# SQL query to load data
+sql_query = """
+SELECT A.*, B.latitude AS LatOrigem, B.longitude AS LongOrigem FROM TC_HistEntregaFilialLatLon A
+LEFT JOIN TC_HistEntregaFilialLatLonEmpresa B ON A.CdEmpresa = B.CdEmpresa 
+WHERE A.latitude IS NOT NULL
+"""
+df = pd.read_sql_query(sql_query, engine)
 
-# Itera sobre cada linha do DataFrame
-for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing records"):
+# Cabeçalhos da requisição para a API
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8wLjAuMC4wOjgwMDFcL2FwaVwvdmVsb2dcL2F1dGgiLCJpYXQiOjE3MTI1NDM5MjcsImV4cCI6MTcxNzcyNzkyNywibmJmIjoxNzEyNTQzOTI3LCJqdGkiOiJiVGo3TUw4NG9TQ05QS3REIiwiYWN0aW9uIjoiIiwiaWQiOjY1NDEsInRva2VuIjoiIn0.jbpq7JrUrkPc9kP1kmRMTaxwyJ33AqGGVILz31qgyLs'
+}
+
+# Iterate over each row of the DataFrame
+for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing records"):
     data = {
         "sn_lat_lng": False,
         "sn_rota_alternativa": False,
@@ -74,28 +73,28 @@ for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing record
             {"lat": row['latitude'], "lng": row['longitude']}
         ]
     }
+    response = requests.post('https://velog.vertti.com.br/api/velog/roteiro', json=data, headers=headers, timeout=20)
 
-    # Realiza a requisição POST
-    response = requests.post('https://velog.vertti.com.br/api/velog/roteiro', json=data, headers=headers)
-
-
-        # API Call and data processing
-    response = requests.post('https://velog.vertti.com.br/api/velog/roteiro', json=data, headers=headers)
     if response.status_code == 200:
-        track_info = response.json()[0]['track']  # Assuming correct path to data
-        for rota in track_info.get('rotas', []):
-            for leg in rota.get('legs', []):
-                insert_data(
-                    empresa=row['CdEmpresa'],
-                    romaneio=row['CdRomaneio'],
-                    distance=leg.get('distance', 0),
-                    duration=leg.get('duration', 0),
-                    pedagio=rota.get('vl_total_pedagio_original', 0),
-                    combustivel=rota.get('vl_total_combustivel_original', 0),
-                    viagem=rota.get('vl_total_viagem_original', 0)
-                )
+        try:
+            track_info = response.json()[0]['track']  # Now correctly accessing the first item
+            for rota in track_info.get('rotas', []):
+                for leg in rota.get('legs', []):
+                    insert_data(
+                        empresa=row['CdEmpresa'],
+                        romaneio=row['CdRomaneio'],
+                        distance=leg.get('distance', 0),
+                        duration=leg.get('duration', 0),
+                        pedagio=rota.get('vl_total_pedagio_original', 0),
+                        combustivel=rota.get('vl_total_combustivel_original', 0),
+                        viagem=rota.get('vl_total_viagem_original', 0)
+                    )
+        except KeyError as e:
+            print(f"Key error: {e} in response {response.json()}")
+        except IndexError:
+            print("Index error in the API response")
     else:
-        print("Failed to fetch data from API")
+        print(f"API request failed with status {response.status_code}")
 
-    # Output confirmation
-    print("Data insertion completed.")
+# Output confirmation
+print("Data insertion completed.")
