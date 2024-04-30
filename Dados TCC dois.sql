@@ -28,6 +28,8 @@ WITH Dados AS (
         DATEPART(day, A.data) AS Dia,
         DATEPART(month, A.data) AS Mes,
         DATEPART(year, A.data) AS Ano,
+		A.CdRomaneio,
+		A.CdEmpresa,
         B.NrPlaca,
         C.DsTpVeiculo,
         D.DsModelo,
@@ -67,6 +69,8 @@ Calculos AS (
         D.Dia,
         D.Mes,
         D.Ano,
+		D.CdEmpresa,
+		D.CdRomaneio,
         D.NrPlaca,
         D.DsTpVeiculo,
         D.DsModelo,
@@ -90,15 +94,17 @@ Calculos AS (
         ISNULL(CAST((D.FreteEx / NULLIF(D.Frete, 0)) * 100 AS numeric(14,2)), 0.00) AS [%FreteCobrado]
     FROM Dados D
 )
-
-SELECT
+SELECT distinct
     C.Dia,
     C.Mes,
     C.Ano,
     C.DsTpVeiculo,
     C.DsModelo,
     C.DsAnoFabricacao,
-    C.VlCusto,
+    CASE 
+        WHEN COALESCE(A.TotalViagem,C.Vlcusto) IS NULL OR A.TotalViagem = 0 THEN C.VlCusto
+        ELSE A.TotalViagem
+    END AS VlCusto,
     C.km_rodado,
     C.VlCapacVeic,
     C.NrAuxiliares,
@@ -109,7 +115,8 @@ SELECT
     C.[%PesoEntr],
     C.[%FreteCobrado],
     C.FreteEx,
-    C.FreteEx - C.VlCusto AS Lucro,
-    ISNULL(CAST((C.FreteEx - C.VlCusto) / NULLIF(C.FreteEx, 0) * 100 AS numeric(14,2)), 0) AS [%Lucro]
+    C.FreteEx - (CASE WHEN A.TotalViagem IS NULL OR A.TotalViagem = 0 THEN C.VlCusto ELSE A.TotalViagem END) AS Lucro,
+    ISNULL(CAST((C.FreteEx - (CASE WHEN A.TotalViagem IS NULL OR A.TotalViagem = 0 THEN C.VlCusto ELSE A.TotalViagem END)) / NULLIF(C.FreteEx, 0) * 100 AS numeric(14,2)), 0) AS [%Lucro]
 FROM Calculos C
+LEFT JOIN ResumoViagem A ON A.CdEmpresa = C.CdEmpresa AND A.CdRomaneio = C.CdRomaneio
 ORDER BY C.Ano, C.Mes, C.Dia;

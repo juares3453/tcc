@@ -1,18 +1,25 @@
-import pandas as pd
-from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData, insert
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData, insert
+from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
+import pandas as pd
 
-# Credenciais para conexão ao banco de dados
+# Database credentials and connection setup
 server = 'JUARES-PC'
 database = 'softran_rasador'
 username = 'sa'
 password = 'sof1209'
 driver = 'ODBC Driver 17 for SQL Server'
-
-# Cria a string de conexão para o SQLAlchemy
 connection_string = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver={driver}'
 engine = create_engine(connection_string)
+
+# Cabeçalhos da requisição para a API
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8wLjAuMC4wOjgwMDFcL2FwaVwvdmVsb2dcL2F1dGgiLCJpYXQiOjE3MTI1NDM5MjcsImV4cCI6MTcxNzcyNzkyNywibmJmIjoxNzEyNTQzOTI3LCJqdGkiOiJiVGo3TUw4NG9TQ05QS3REIiwiYWN0aW9uIjoiIiwiaWQiOjY1NDEsInRva2VuIjoiIn0.jbpq7JrUrkPc9kP1kmRMTaxwyJ33AqGGVILz31qgyLs'
+}
 
 # Define schema
 metadata = MetaData()
@@ -27,20 +34,27 @@ resultados_api = Table('ResumoViagem', metadata,
                        )
 metadata.create_all(engine)
 
-# Data insertion function
-def insert_data(empresa, romaneio, distance, duration, pedagio, combustivel, viagem):
-    with engine.connect() as conn:
-        stmt = insert(resultados_api).values(
-            CdEmpresa=empresa,
-            CdRomaneio=romaneio,
-            TotalDistancia=distance,
-            TotalDuracao=duration,
-            TotalPedagio=pedagio,
-            TotalCombustivel=combustivel,
-            TotalViagem=viagem
-        )
-        conn.execute(stmt)
-        conn.commit()  # Ensure to commit the transaction
+# Setup retry strategy with exponential backoff
+retry_strategy = Retry(
+    total=5,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],  # Updated parameter here
+    backoff_factor=2
+)
+
+adapter = HTTPAdapter(max_retries=retry_strategy)
+http = requests.Session()
+http.mount("https://", adapter)
+
+# Define the API request function
+def make_request(url, data, headers):
+    try:
+        response = http.post(url, json=data, headers=headers, timeout=20)
+        response.raise_for_status()
+        return response
+    except requests.RequestException as e:
+        print(f"HTTP Error: {e}")
+        return None
 
 # SQL query to load data
 sql_query = """
@@ -50,14 +64,12 @@ WHERE A.latitude IS NOT NULL
 """
 df = pd.read_sql_query(sql_query, engine)
 
-# Cabeçalhos da requisição para a API
-headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC8wLjAuMC4wOjgwMDFcL2FwaVwvdmVsb2dcL2F1dGgiLCJpYXQiOjE3MTI1NDM5MjcsImV4cCI6MTcxNzcyNzkyNywibmJmIjoxNzEyNTQzOTI3LCJqdGkiOiJiVGo3TUw4NG9TQ05QS3REIiwiYWN0aW9uIjoiIiwiaWQiOjY1NDEsInRva2VuIjoiIn0.jbpq7JrUrkPc9kP1kmRMTaxwyJ33AqGGVILz31qgyLs'
-}
+# Session setup for database operations
+Session = sessionmaker(bind=engine)
+session = Session()
 
 # Iterate over each row of the DataFrame
-for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing records"):
+for index, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing records"):
     data = {
         "sn_lat_lng": False,
         "sn_rota_alternativa": False,
@@ -73,28 +85,29 @@ for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing records"):
             {"lat": row['latitude'], "lng": row['longitude']}
         ]
     }
-    response = requests.post('https://velog.vertti.com.br/api/velog/roteiro', json=data, headers=headers, timeout=20)
+    response = make_request('https://velog.vertti.com.br/api/velog/roteiro', data, headers)
 
-    if response.status_code == 200:
-        try:
-            track_info = response.json()[0]['track']  # Now correctly accessing the first item
-            for rota in track_info.get('rotas', []):
-                for leg in rota.get('legs', []):
-                    insert_data(
-                        empresa=row['CdEmpresa'],
-                        romaneio=row['CdRomaneio'],
-                        distance=leg.get('distance', 0),
-                        duration=leg.get('duration', 0),
-                        pedagio=rota.get('vl_total_pedagio_original', 0),
-                        combustivel=rota.get('vl_total_combustivel_original', 0),
-                        viagem=rota.get('vl_total_viagem_original', 0)
-                    )
-        except KeyError as e:
-            print(f"Key error: {e} in response {response.json()}")
-        except IndexError:
-            print("Index error in the API response")
+    if response and response.status_code == 200:
+        track_info = response.json()[0]['track']  # Now correctly accessing the first item
+        for rota in track_info.get('rotas', []):
+            for leg in rota.get('legs', []):
+                stmt = insert(resultados_api).values(
+                    CdEmpresa=row['CdEmpresa'],
+                    CdRomaneio=row['CdRomaneio'],
+                    TotalDistancia=leg.get('distance', 0),
+                    TotalDuracao=leg.get('duration', 0),
+                    TotalPedagio=rota.get('vl_total_pedagio_original', 0),
+                    TotalCombustivel=rota.get('vl_total_combustivel_original', 0),
+                    TotalViagem=rota.get('vl_total_viagem_original', 0)
+                )
+                session.execute(stmt)
     else:
-        print(f"API request failed with status {response.status_code}")
+        print(f"API request failed with status {response.status_code if response else 'No response'}")
 
-# Output confirmation
-print("Data insertion completed.")
+# Commit all changes
+session.commit()
+
+# Close the session
+session.close()
+
+print("Data processing completed.")
