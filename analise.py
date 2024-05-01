@@ -65,10 +65,17 @@ sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.s
 sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
 sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
 
+def remover_valores_negativos(df):
+    for coluna in df.columns:
+        if pd.api.types.is_numeric_dtype(df[coluna]):
+            df[coluna] = df[coluna].apply(lambda x: x if x >= 0 else np.nan)
+    return df
+
 # Função para obter um DataFrame a partir de um comando SQL
 def get_dataframe(sql_comando):
     with engine.connect() as conn:
         df = pd.read_sql(sql_comando, conn)
+    df = remover_valores_negativos(df)
 
     def index_of_dic(dic, key):
         return dic[key]
@@ -128,6 +135,7 @@ def get_dataframe(sql_comando):
 def get_dataframe1(sql_comando1):
     with engine.connect() as conn:
         df1 = pd.read_sql(sql_comando1, conn)
+    df1 = remover_valores_negativos(df1)
 
     def index_of_dic1(dic1, key1):
         return dic1[key1]
@@ -167,6 +175,7 @@ def get_dataframe1(sql_comando1):
 def get_dataframe2(sql_comando2):
     with engine.connect() as conn:
         df2 = pd.read_sql(sql_comando2, conn)
+    df2 = remover_valores_negativos(df2)
 
     def index_of_dic3(dic3, key3):
         return dic3[key3]
@@ -601,7 +610,7 @@ def dashboard_um():
     plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
     plt.xlabel('Number of Clusters')
     plt.ylabel('Soma_distancia_quadratica')
-    plt.title('K-means Clustering')
+    plt.title('K-means Cotovelo')
     caminho_arquivo = os.path.join(graficos_dir, 'df_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
