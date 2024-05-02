@@ -93,5 +93,13 @@
         </tr>
         {% endfor %}
     </table>
+
+    <h1>Cluster Silhouette Scores</h1>
+    <ul>
+        {% for score in silhouette_scores %}
+            <li>Cluster {{ loop.index }}: {{ score }}</li>
+        {% endfor %}
+    </ul>
+    </div>
 </body>
 </html>

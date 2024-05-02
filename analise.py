@@ -21,6 +21,7 @@ import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -76,6 +77,7 @@ def get_dataframe(sql_comando):
     with engine.connect() as conn:
         df = pd.read_sql(sql_comando, conn)
     df = remover_valores_negativos(df)
+    df.dropna(inplace=True)
 
     def index_of_dic(dic, key):
         return dic[key]
@@ -136,6 +138,7 @@ def get_dataframe1(sql_comando1):
     with engine.connect() as conn:
         df1 = pd.read_sql(sql_comando1, conn)
     df1 = remover_valores_negativos(df1)
+    df1.dropna(inplace=True)
 
     def index_of_dic1(dic1, key1):
         return dic1[key1]
@@ -176,6 +179,7 @@ def get_dataframe2(sql_comando2):
     with engine.connect() as conn:
         df2 = pd.read_sql(sql_comando2, conn)
     df2 = remover_valores_negativos(df2)
+    df2.dropna(inplace=True)
 
     def index_of_dic3(dic3, key3):
         return dic3[key3]
@@ -605,12 +609,21 @@ def dashboard_um():
      km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
      km = km.fit(df_std)
      Soma_distancia_quadratica.append(km.inertia_)
+
+    silhouette_scores = []
+    K = range(2, 10)
+    for k in K:
+        kmeans = KMeans(n_clusters=k, random_state=10)
+        labels = kmeans.fit_predict(df_std)
+        score = silhouette_score(df_std, labels)
+        silhouette_scores.append(score)
+        print(f'For n_clusters={k}, Silhouette score is {score}')
     
     plt.figure(figsize = (10,8))
     plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
     plt.xlabel('Number of Clusters')
     plt.ylabel('Soma_distancia_quadratica')
-    plt.title('K-means Cotovelo')
+    plt.title('Elbow')
     caminho_arquivo = os.path.join(graficos_dir, 'df_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
@@ -742,7 +755,7 @@ def dashboard_um():
     caminhos_graficos16 = [f'graficos/df_cotovelo.png']
 
     return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
-                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16 )
+                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores)
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -781,12 +794,21 @@ def dashboard_dois():
      km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
      km = km.fit(df1_std)
      Soma_distancia_quadratica.append(km.inertia_)
+
+    silhouette_scores = []
+    K = range(2, 10)
+    for k in K:
+        kmeans = KMeans(n_clusters=k, random_state=10)
+        labels = kmeans.fit_predict(df1_std)
+        score = silhouette_score(df1_std, labels)
+        silhouette_scores.append(score)
+        print(f'For n_clusters={k}, Silhouette score is {score}')
      
     plt.figure(figsize = (10,8))
     plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
     plt.xlabel('Number of Clusters')
     plt.ylabel('Soma_distancia_quadratica')
-    plt.title('K-means Clustering')
+    plt.title('Elbow')
     caminho_arquivo = os.path.join(graficos_dir, 'df1_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
@@ -820,7 +842,7 @@ def dashboard_dois():
 
 
     return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
-                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17  )
+                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores  )
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -858,12 +880,21 @@ def dashboard_tres():
      km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
      km = km.fit(df2_std)
      Soma_distancia_quadratica.append(km.inertia_)
+
+    silhouette_scores = []
+    K = range(2, 10)
+    for k in K:
+        kmeans = KMeans(n_clusters=k, random_state=10)
+        labels = kmeans.fit_predict(df2_std)
+        score = silhouette_score(df2_std, labels)
+        silhouette_scores.append(score)
+        print(f'For n_clusters={k}, Silhouette score is {score}')
      
     plt.figure(figsize = (10,8))
     plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
     plt.xlabel('Number of Clusters')
     plt.ylabel('Soma_distancia_quadratica')
-    plt.title('K-means Clustering')
+    plt.title('Elbow')
     caminho_arquivo = os.path.join(graficos_dir, 'df2_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
@@ -896,7 +927,7 @@ def dashboard_tres():
     caminhos_graficos18 = [f'graficos/df2_cotovelo.png']
 
     return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
-                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18 )
+                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores )
 
 
 # Rota para exibir um gráfico específico
