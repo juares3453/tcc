@@ -568,7 +568,6 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
                               facecolor=color, edgecolor=color, alpha=0.7)
             # Add cluster number in the middle of the silhouette
             ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i), color="red", fontweight='bold')
-
             y_lower = y_upper + 10  # 10 for the 0 samples
 
         ax1.set_title("The silhouette plot for various clusters")
@@ -580,6 +579,15 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
         ax2.scatter(df_std[:, 0], df_std[:, 1], marker='.', s=30, lw=0, alpha=0.7,
                     c=colors, edgecolor='k')
 
+        # Plot the centroids as a white X
+        centroids = clusterer.cluster_centers_
+        ax2.scatter(centroids[:, 0], centroids[:, 1],
+                    marker='x', s=169, linewidths=3,
+                    color='w', zorder=10)
+        # Add cluster number near the centroids
+        for i, centroid in enumerate(centroids):
+            ax2.text(centroid[0], centroid[1], f'{i}', color="white", ha='center', va='center', fontweight='bold')
+
         ax2.set_title("The visualization of the clustered data")
         ax2.set_xlabel("Feature space for the 1st feature")
         ax2.set_ylabel("Feature space for the 2nd feature")
@@ -589,6 +597,7 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
 
         plt.savefig(f'{graficos_dir}/{nome_prefixo}_silhouette_{n_clusters}.png')
         plt.close()
+
 
 def perform_and_plot_kmeans(database_data, n_clusters=3):
     # Apply PCA
