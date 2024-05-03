@@ -581,7 +581,7 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
 
         # Plot the centroids as a white X
         centroids = clusterer.cluster_centers_
-        ax2.scatter(centers[:, 2], centers[:, 1], marker='o',
+        ax2.scatter(centroids[:, 2], centroids[:, 1], marker='o',
                 c="white", alpha=1, s=200, edgecolor='k')
         # Add cluster number near the centroids
         for i, centroid in enumerate(centroids):
