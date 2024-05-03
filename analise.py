@@ -581,12 +581,12 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
 
         # Plot the centroids as a white X
         centroids = clusterer.cluster_centers_
-        ax2.scatter(centroids[:, 0], centroids[:, 1],
-                    marker='x', s=169, linewidths=3,
-                    color='w', zorder=10)
+        ax2.scatter(centers[:, 2], centers[:, 1], marker='o',
+                c="white", alpha=1, s=200, edgecolor='k')
         # Add cluster number near the centroids
         for i, centroid in enumerate(centroids):
-            ax2.text(centroid[0], centroid[1], f'{i}', color="white", ha='center', va='center', fontweight='bold')
+            ax2.scatter(centroid[2], centroid[1], marker='$%d$' % i, alpha=1,
+                    s=50, edgecolor='k')
 
         ax2.set_title("The visualization of the clustered data")
         ax2.set_xlabel("Feature space for the 1st feature")
