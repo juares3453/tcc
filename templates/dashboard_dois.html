@@ -98,6 +98,11 @@
             <li>Cluster {{ loop.index }}: {{ score }}</li>
         {% endfor %}
     </ul>
+
+    <h1>Cluster Analysis Results</h1>
+    {% for n in range(2, 11) %}
+    <img src="{{ url_for('static', filename='graficos/df1_silhouette_' ~ n ~ '.png') }}" alt="Silhouette Analysis for {{ n }} Clusters">
+    {% endfor %}
     </div>
 </body>
 </html>
