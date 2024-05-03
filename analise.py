@@ -566,6 +566,9 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
             color = cm.nipy_spectral(float(i) / n_clusters)
             ax1.fill_betweenx(np.arange(y_lower, y_upper), 0, ith_cluster_silhouette_values,
                               facecolor=color, edgecolor=color, alpha=0.7)
+            # Add cluster number in the middle of the silhouette
+            ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i), color="red", fontweight='bold')
+
             y_lower = y_upper + 10  # 10 for the 0 samples
 
         ax1.set_title("The silhouette plot for various clusters")
@@ -587,6 +590,41 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
         plt.savefig(f'{graficos_dir}/{nome_prefixo}_silhouette_{n_clusters}.png')
         plt.close()
 
+def perform_and_plot_kmeans(database_data, n_clusters=3):
+    # Apply PCA
+    reduced_data = PCA(n_components=2).fit_transform(database_data)
+    
+    # Perform KMeans clustering
+    kmeans = KMeans(init='k-means++', n_clusters=n_clusters, n_init=10)
+    kmeans.fit(reduced_data)
+    
+    # Create mesh for background of plot
+    h = .02
+    x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
+    y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+    # Plotting
+    plt.figure(figsize=(8, 6))
+    plt.imshow(Z, interpolation='nearest',
+               extent=(xx.min(), xx.max(), yy.min(), yy.max()),
+               cmap=plt.cm.Paired,
+               aspect='auto', origin='lower')
+
+    centroids = kmeans.cluster_centers_
+    plt.scatter(reduced_data[:, 0], reduced_data[:, 1], c='k', s=30, marker='o')
+    plt.scatter(centroids[:, 0], centroids[:, 1], marker='x', s=200, linewidths=3, color='r', zorder=10)
+    plt.title(f'K-means Clustering with {n_clusters} Clusters')
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.xticks(())
+    plt.yticks(())
+    plot_path = os.path.join(graficos_dir, f'kmeans_pca_plot_{n_clusters}.png')
+    plt.savefig(plot_path)
+    plt.close()
+    
+    return plot_path
                 
 @analise.route('/')
 def index():
@@ -620,6 +658,7 @@ def gerar_graficos():
     perform_clustering_and_generate_graphs(df, range(2, 11), 'df')
     perform_clustering_and_generate_graphs(df1, range(2, 11), 'df1')
     perform_clustering_and_generate_graphs(df2, range(2, 11), 'df2')
+    # perform_and_plot_kmeans(df, n_clusters=)
     
     return "Gráficos gerados e salvos com sucesso!"
 
