@@ -809,7 +809,7 @@ def dashboard_um():
      km = km.fit(df_std)
      s_score=metrics.silhouette_score(df_std, km.labels_, metric='euclidean',sample_size=24527)
 
-    kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
+    kmeans = KMeans(n_clusters = 6, init = 'k-means++', random_state = 42)
     kmeans.fit(df_std)
     df_segm_kmeans= df_std.copy()
     df_std['Segment'] = kmeans.labels_
@@ -984,7 +984,7 @@ def dashboard_tres():
     caminho_arquivo = os.path.join(graficos_dir, 'df2_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
-    kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
+    kmeans = KMeans(n_clusters = 3, init = 'k-means++', random_state = 42)
     kmeans.fit(df2_std)
     df2_segm_kmeans= df2_std.copy()
     df2_std['Segment'] = kmeans.labels_
