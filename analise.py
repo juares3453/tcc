@@ -751,7 +751,6 @@ def gerar_graficos():
     
     return "Gráficos gerados e salvos com sucesso!"
 
-
 @analise.route('/dashboard_um')
 def dashboard_um():
     df = get_dataframe(sql_comando)
@@ -829,7 +828,8 @@ def dashboard_um():
         'soma_quadratica': Soma_distancia_quadratica,
         'df_segm_analysis': df_to_dict
     }
-    
+
+   
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
@@ -838,9 +838,10 @@ def dashboard_um():
     caminhos_graficos10 = [f'graficos/df_heatmap.png']
     caminhos_graficos11 = [f'graficos/df_pairplot_numerical.png']
     caminhos_graficos16 = [f'graficos/df_cotovelo.png']
+    cluster_analysis_report = execute_cluster_analysis(df, 6)
 
     return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
-                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores)
+                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores, cluster_analysis_report=cluster_analysis_report)
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -924,9 +925,10 @@ def dashboard_dois():
     caminhos_graficos12 = [f'graficos/df1_heatmap.png']
     caminhos_graficos13 = [f'graficos/df1_pairplot_numerical.png']
     caminhos_graficos17 = [f'graficos/df1_cotovelo.png']
+    cluster_analysis_report1 = execute_cluster_analysis(df1, 5)
 
     return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
-                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores  )
+                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores,  cluster_analysis_report1=cluster_analysis_report1)
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -1009,10 +1011,10 @@ def dashboard_tres():
     caminhos_graficos14 = [f'graficos/df2_heatmap.png']
     caminhos_graficos15 = [f'graficos/df2_pairplot_numerical.png']
     caminhos_graficos18 = [f'graficos/df2_cotovelo.png']
+    cluster_analysis_report2 = execute_cluster_analysis(df2, 3)
 
     return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
-                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores )
-
+                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores, cluster_analysis_report2=cluster_analysis_report2)
 
 # Rota para exibir um gráfico específico
 @analise.route('/grafico/<campo>')
