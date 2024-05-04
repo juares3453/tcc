@@ -27,6 +27,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.tree import _tree, DecisionTreeClassifier
+from IPython.display import HTML, display
 mpl.rcParams['figure.max_open_warning'] = 50
 
 analise = Flask(__name__)
@@ -599,41 +601,117 @@ def perform_clustering_and_generate_graphs(df, n_clusters_range, nome_prefixo):
         plt.close()
 
 
-def perform_and_plot_kmeans(database_data, n_clusters=3):
-    # Apply PCA
-    reduced_data = PCA(n_components=2).fit_transform(database_data)
-    
-    # Perform KMeans clustering
+def perform_and_plot_kmeans(dataframe, nome_prefixo, n_clusters):
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(dataframe)
+
+    pca = PCA(n_components=2)
+    reduced_data = pca.fit_transform(scaled_data)
+
     kmeans = KMeans(init='k-means++', n_clusters=n_clusters, n_init=10)
     kmeans.fit(reduced_data)
-    
-    # Create mesh for background of plot
-    h = .02
-    x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
-    y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
+
+    # Define a reasonable clipping value to limit plot ranges
+    clip_value = 10  # Adjust based on your specific dataset characteristics
+
+    # Set up plot limits more safely
+    x_min, x_max = max(reduced_data[:, 0].min() - 1, -clip_value), min(reduced_data[:, 0].max() + 1, clip_value)
+    y_min, y_max = max(reduced_data[:, 1].min() - 1, -clip_value), min(reduced_data[:, 1].max() + 1, clip_value)
+    h = 0.5  # Adjust the step size for practicality and performance
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+    # Predict cluster indexes for each point in the mesh
     Z = kmeans.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
 
-    # Plotting
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(12, 7))
     plt.imshow(Z, interpolation='nearest',
                extent=(xx.min(), xx.max(), yy.min(), yy.max()),
                cmap=plt.cm.Paired,
                aspect='auto', origin='lower')
 
+    plt.plot(reduced_data[:, 0], reduced_data[:, 1], 'k.', markersize=2)
     centroids = kmeans.cluster_centers_
-    plt.scatter(reduced_data[:, 0], reduced_data[:, 1], c='k', s=30, marker='o')
-    plt.scatter(centroids[:, 0], centroids[:, 1], marker='x', s=200, linewidths=3, color='r', zorder=10)
-    plt.title(f'K-means Clustering with {n_clusters} Clusters')
+    plt.scatter(centroids[:, 0], centroids[:, 1], marker='x', s=169, linewidths=3, color='w', zorder=10)
+    plt.title(f'K-means clustering on PCA-reduced data with {n_clusters} clusters')
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
     plt.xticks(())
     plt.yticks(())
-    plot_path = os.path.join(graficos_dir, f'kmeans_pca_plot_{n_clusters}.png')
-    plt.savefig(plot_path)
+
+    plt.savefig(f'{graficos_dir}/{nome_prefixo}_kmeans_pca_plot_{n_clusters}.png')
     plt.close()
-    
-    return plot_path
+
+def execute_cluster_analysis(data, clusters, min_samples_leaf=50, pruning_level=0.01):
+    """
+    This function performs clustering analysis and displays rules for each cluster
+    using a decision tree classifier.
+
+    Parameters:
+    - data: pandas DataFrame containing the dataset.
+    - clusters: Array-like of cluster labels corresponding to each row in data.
+    - min_samples_leaf: The minimum number of samples required to be at a leaf node.
+    - pruning_level: Complexity parameter used for Minimal Cost-Complexity Pruning.
+    """
+
+    def pretty_print(df):
+        """
+        Display a DataFrame in HTML format.
+        """
+        return display(HTML(df.to_html().replace("\\n", "<br>")))
+
+    def get_class_rules(tree, feature_names):
+        """
+        Extract classification rules from the decision tree.
+        """
+        inner_tree = tree.tree_
+        classes = tree.classes_
+        class_rules_dict = dict()
+
+        def tree_dfs(node_id=0, current_rule=[]):
+            # feature[i] holds the feature to split on, for the internal node i.
+            split_feature = inner_tree.feature[node_id]
+            if split_feature != _tree.TREE_UNDEFINED:  # internal node
+                name = feature_names[split_feature]
+                threshold = inner_tree.threshold[node_id]
+                # left child
+                left_rule = current_rule + ["({} <= {})".format(name, threshold)]
+                tree_dfs(inner_tree.children_left[node_id], left_rule)
+                # right child
+                right_rule = current_rule + ["({} > {})".format(name, threshold)]
+                tree_dfs(inner_tree.children_right[node_id], right_rule)
+            else:  # leaf
+                dist = inner_tree.value[node_id][0]
+                dist = dist / dist.sum()
+                max_idx = dist.argmax()
+                rule_string = " and ".join(current_rule) if current_rule else "ALL"
+                # register new rule to dictionary
+                selected_class = classes[max_idx]
+                class_probability = dist[max_idx]
+                class_rules = class_rules_dict.get(selected_class, [])
+                class_rules.append((rule_string, class_probability))
+                class_rules_dict[selected_class] = class_rules
+
+        tree_dfs()  # start from root, node_id = 0
+        return class_rules_dict
+
+    # Create Model
+    tree = DecisionTreeClassifier(min_samples_leaf=min_samples_leaf, ccp_alpha=pruning_level)
+    tree.fit(data, clusters)
+
+    # Generate Report
+    feature_names = data.columns
+    class_rule_dict = get_class_rules(tree, feature_names)
+
+    report_class_list = []
+    for class_name, rule_list in class_rule_dict.items():
+        combined_string = "\n\n".join(f"[{prob:.2f}] {rule}" for rule, prob in rule_list)
+        report_class_list.append((class_name, combined_string))
+
+    cluster_instance_df = pd.Series(clusters).value_counts().reset_index()
+    cluster_instance_df.columns = ['class_name', 'instance_count']
+    report_df = pd.DataFrame(report_class_list, columns=['class_name', 'rule_list'])
+    report_df = pd.merge(cluster_instance_df, report_df, on='class_name', how='left')
+    pretty_print(report_df.sort_values(by='class_name')[['class_name', 'instance_count', 'rule_list']])
                 
 @analise.route('/')
 def index():
@@ -646,28 +724,30 @@ def gerar_graficos():
     df1 = get_dataframe1(sql_comando1)
     df2 = get_dataframe2(sql_comando2)
     
-    gerar_e_salvar_graficos(df, campos, 'df')
-    gerar_e_salvar_graficos(df1, campos1, 'df1')
-    gerar_e_salvar_graficos(df2, campos2, 'df2')
-    gerar_e_salvar_graficos3(df, campos, 'df')
-    gerar_e_salvar_graficos4(df1, campos1, 'df1')
-    gerar_e_salvar_graficos5(df2, campos2, 'df2')
-    gerar_e_salvar_graficos_pairplot(df, campos, 'df')
-    gerar_e_salvar_graficos_pairplot(df1, campos1, 'df1')
-    gerar_e_salvar_graficos_pairplot(df2, campos2, 'df2')
-    gerar_e_salvar_graficos_pairplot_numerical_values(df, campos, 'df')
-    gerar_e_salvar_graficos_pairplot_numerical_values(df1, campos1, 'df1')
-    gerar_e_salvar_graficos_pairplot_numerical_values(df2, campos2, 'df2')
-    gerar_e_salvar_graficos_scatterplot(df, campos, 'df')        
-    gerar_e_salvar_graficos_scatterplot(df1, campos1, 'df1')
-    gerar_e_salvar_graficos_scatterplot(df2, campos2, 'df2')
-    gerar_e_salvar_graficos_heatmap(df, 'df')       
-    gerar_e_salvar_graficos_heatmap(df1, 'df1')
-    gerar_e_salvar_graficos_heatmap(df2, 'df2')
-    perform_clustering_and_generate_graphs(df, range(2, 11), 'df')
-    perform_clustering_and_generate_graphs(df1, range(2, 11), 'df1')
-    perform_clustering_and_generate_graphs(df2, range(2, 11), 'df2')
-    # perform_and_plot_kmeans(df, n_clusters=)
+    # gerar_e_salvar_graficos(df, campos, 'df')
+    # gerar_e_salvar_graficos(df1, campos1, 'df1')
+    # gerar_e_salvar_graficos(df2, campos2, 'df2')
+    # gerar_e_salvar_graficos3(df, campos, 'df')
+    # gerar_e_salvar_graficos4(df1, campos1, 'df1')
+    # gerar_e_salvar_graficos5(df2, campos2, 'df2')
+    # gerar_e_salvar_graficos_pairplot(df, campos, 'df')
+    # gerar_e_salvar_graficos_pairplot(df1, campos1, 'df1')
+    # gerar_e_salvar_graficos_pairplot(df2, campos2, 'df2')
+    # gerar_e_salvar_graficos_pairplot_numerical_values(df, campos, 'df')
+    # gerar_e_salvar_graficos_pairplot_numerical_values(df1, campos1, 'df1')
+    # gerar_e_salvar_graficos_pairplot_numerical_values(df2, campos2, 'df2')
+    # gerar_e_salvar_graficos_scatterplot(df, campos, 'df')        
+    # gerar_e_salvar_graficos_scatterplot(df1, campos1, 'df1')
+    # gerar_e_salvar_graficos_scatterplot(df2, campos2, 'df2')
+    # gerar_e_salvar_graficos_heatmap(df, 'df')       
+    # gerar_e_salvar_graficos_heatmap(df1, 'df1')
+    # gerar_e_salvar_graficos_heatmap(df2, 'df2')
+    # perform_clustering_and_generate_graphs(df, range(2, 11), 'df')
+    # perform_clustering_and_generate_graphs(df1, range(2, 11), 'df1')
+    # perform_clustering_and_generate_graphs(df2, range(2, 11), 'df2')
+    perform_and_plot_kmeans(df, 'df', 6)
+    perform_and_plot_kmeans(df1,  'df1', 5)
+    perform_and_plot_kmeans(df2, 'df2', 3)
     
     return "Gráficos gerados e salvos com sucesso!"
 

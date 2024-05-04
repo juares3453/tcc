@@ -104,5 +104,13 @@
     <img src="{{ url_for('static', filename='graficos/df1_silhouette_' ~ n ~ '.png') }}" alt="Silhouette Analysis for {{ n }} Clusters">
     {% endfor %}
     </div>
+
+    <h1>K-means Clustering Results</h1>
+    <img src="{{ url_for('static', filename='graficos/df1_kmeans_pca_plot.png') }}" alt="K-means Clustering with PCA">
+
+    <h1>Cluster Analysis Report</h1>
+    <div>
+        {{ cluster_analysis_report|safe }}
+    </div>
 </body>
 </html>
