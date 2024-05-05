@@ -114,10 +114,31 @@
 
     <h1>K-means Clustering Results</h1>
     <img src="{{ url_for('static', filename='graficos/df_kmeans_pca_plot.png') }}" alt="K-means Clustering with PCA">
-
     <h1>Cluster Analysis Report</h1>
-    <div>
-        {{ cluster_analysis_report|safe }}
-    </div>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Instance Count</th>
+                <th>Rule List</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in cluster_analysis_report.iterrows() %}
+            <tr>
+                <td>{{ row['class_name'] }}</td>
+                <td>{{ row['instance_count'] }}</td>
+                <td>{{ row['rule_list'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h1>K-means Scatterplot</h1>
+    <img src="{{ url_for('static', filename='graficos/df_kmeans_elbow.png') }}" alt="K-means Scatterplot with PCA">
+
+    <h1>K-means Elbow</h1>
+    <img src="{{ url_for('static', filename='graficos/df_kmeans_scatterplot.png') }}" alt="K-means Elbow with PCA">
 </body>
 </html>
