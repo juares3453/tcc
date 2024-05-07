@@ -38,6 +38,9 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+import seaborn as sb
+from sklearn.model_selection import cross_val_predict
 
 mpl.rcParams['figure.max_open_warning'] = 50
 
@@ -900,6 +903,13 @@ def dashboard_um():
     predictions_test = tree.predict(X_test)
     accuracy_score(y_test,predictions_test)*100
     print(classification_report(y_test,predictions_test))
+    cf = confusion_matrix(y_test,predictions_test)
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
+    sb.heatmap(cf,annot=True,cmap="Greens", fmt="d",xticklabels=lbl1,yticklabels=lbl2)
+    #Cross Validation
+    predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
+    accuracy_score(y,predictions_test)*100
     
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
@@ -1015,6 +1025,13 @@ def dashboard_dois():
     predictions_test = tree.predict(X_test)
     accuracy_score(y_test,predictions_test)*100
     print(classification_report(y_test,predictions_test))
+    cf = confusion_matrix(y_test,predictions_test)
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
+    sb.heatmap(cf,annot=True,cmap="Greens", fmt="d",xticklabels=lbl1,yticklabels=lbl2)
+    #Cross Validation
+    predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
+    accuracy_score(y,predictions_test)*100
 
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
     caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
@@ -1127,6 +1144,13 @@ def dashboard_tres():
     predictions_test = tree.predict(X_test)
     accuracy_score(y_test,predictions_test)*100 
     print(classification_report(y_test,predictions_test))
+    cf = confusion_matrix(y_test,predictions_test)
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
+    sb.heatmap(cf,annot=True,cmap="Greens", fmt="d",xticklabels=lbl1,yticklabels=lbl2)
+    #Cross Validation
+    predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
+    accuracy_score(y,predictions_test)*100
        
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
