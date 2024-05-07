@@ -32,6 +32,13 @@ from IPython.display import HTML, display
 from sklearn.tree import export_text
 from flask import send_file
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+
 mpl.rcParams['figure.max_open_warning'] = 50
 
 analise = Flask(__name__)
@@ -641,7 +648,7 @@ def perform_and_plot_kmeans(dataframe, nome_prefixo, n_clusters):
     plt.xticks(())
     plt.yticks(())
 
-    plt.savefig(f'{graficos_dir}/{nome_prefixo}_kmeans_pca_plot_{n_clusters}.png')
+    plt.savefig(f'{graficos_dir}/{nome_prefixo}_kmeans_pca_plot.png')
     plt.close()
 
 def pretty_print(df):
@@ -707,19 +714,13 @@ def cluster_report(data: pd.DataFrame, clusters, min_samples_leaf=50, pruning_le
 
     return report_df.sort_values(by='class_name')[['class_name', 'instance_count', 'rule_list']]
 
-def kmeans_elbow_viz(data, nome_prefixo, n_clusters, **kwargs):
-    pipeline = Pipeline(steps=[
-        ('scaler', StandardScaler()),
-        ('dim_reduction', PCA(n_components=2, random_state=0))
-    ])
-    
-    pc = pipeline.fit_transform(data)
+def kmeans_elbow_viz(data, nome_prefixo):
     sum_of_squared_distance = []
-    n_cluster = range(1, n_clusters + 1)
+    n_cluster = range(1, 11)
 
     for k in n_cluster:
-        kmean_model = KMeans(n_clusters, **kwargs)
-        kmean_model.fit(pc)
+        kmean_model = KMeans(n_clusters=k)
+        kmean_model.fit(data)
         sum_of_squared_distance.append(kmean_model.inertia_)
 
     plt.plot(n_cluster, sum_of_squared_distance, 'bx-')
@@ -729,23 +730,35 @@ def kmeans_elbow_viz(data, nome_prefixo, n_clusters, **kwargs):
     plt.savefig(f'{graficos_dir}/{nome_prefixo}_kmeans_elbow.png')
     plt.close()  # Fechando a figura para evitar a exibição indesejada no HTML
 
-def kmeans_scatterplot(data, nome_prefixo, n_clusters,**kwargs):
+def kmeans_scatterplot(data, nome_prefixo, n_clusters, **kwargs):
+    # Preprocessing and dimension reduction
     pipeline = Pipeline(steps=[
         ('scaler', StandardScaler()),
         ('dim_reduction', PCA(n_components=2, random_state=0))
     ])
     
+    # Transform data
     pc = pipeline.fit_transform(data)
+    
+    # Clustering
     kmeans_model = KMeans(n_clusters, **kwargs)
     y_cluster = kmeans_model.fit_predict(pc)
 
+    # Create scatterplot
     fig, ax = plt.subplots(figsize=(8, 6))
     sns.scatterplot(x=pc[:,0], y=pc[:,1], hue=y_cluster, palette='bright', ax=ax)
     ax.set(xlabel="PC1", ylabel="PC2", title="KMeans Clustering - Dataset")
     ax.legend(title='Cluster')
     
+    # Save plot
     plt.savefig(f'{graficos_dir}/{nome_prefixo}_kmeans_scatterplot.png')  
-    plt.close()  
+    plt.close()
+    
+    # Create a new DataFrame with clusters
+    new_data = data.copy()
+    new_data['Cluster'] = y_cluster
+    
+    return new_data
                 
 @analise.route('/')
 def index():
@@ -779,15 +792,12 @@ def gerar_graficos():
     perform_clustering_and_generate_graphs(df, range(2, 11), 'df')
     perform_clustering_and_generate_graphs(df1, range(2, 11), 'df1')
     perform_clustering_and_generate_graphs(df2, range(2, 11), 'df2')
-    perform_and_plot_kmeans(df, 'df', 6)
-    perform_and_plot_kmeans(df1,  'df1', 5)
+    perform_and_plot_kmeans(df, 'df', 2)
+    perform_and_plot_kmeans(df1,  'df1', 3)
     perform_and_plot_kmeans(df2, 'df2', 3)
-    kmeans_elbow_viz(df, 'df', 10)
-    kmeans_elbow_viz(df1,  'df1', 10)
-    kmeans_elbow_viz(df2, 'df2', 10)
-    kmeans_scatterplot(df, 'df', 6)
-    kmeans_scatterplot(df1,  'df1', 5)
-    kmeans_scatterplot(df2, 'df2', 3)
+    kmeans_elbow_viz(df, 'df')
+    kmeans_elbow_viz(df1,  'df1')
+    kmeans_elbow_viz(df2, 'df2') 
     
     return "Gráficos gerados e salvos com sucesso!"
 
@@ -849,7 +859,7 @@ def dashboard_um():
      km = km.fit(df_std)
      s_score=metrics.silhouette_score(df_std, km.labels_, metric='euclidean',sample_size=24527)
 
-    kmeans = KMeans(n_clusters = 6, init = 'k-means++', random_state = 42)
+    kmeans = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
     kmeans.fit(df_std)
     df_segm_kmeans= df_std.copy()
     df_std['Segment'] = kmeans.labels_
@@ -868,8 +878,29 @@ def dashboard_um():
         'soma_quadratica': Soma_distancia_quadratica,
         'df_segm_analysis': df_to_dict
     }
-
-   
+    new_data = kmeans_scatterplot(df, 'df', 2)
+    html_data = new_data.head().to_html(classes='table')
+ 
+    X = new_data.iloc[:,0:17]
+    y = new_data.iloc[:,18]
+    uniformiza = MinMaxScaler()
+    novo_X = uniformiza.fit_transform(X)
+    tree = DecisionTreeClassifier()
+    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
+    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    grid.fit(novo_X,y)
+    best_clf = grid.best_estimator_
+    print(best_clf)
+    # Criação de conjuntos de treino e teste
+    X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
+    print (X_train.shape, y_train.shape)  # shape - mostra quantas linhas e colunas foram geradas
+    print (X_test.shape, y_test.shape)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=40, min_samples_leaf=3)
+    tree.fit(X_train,y_train)
+    predictions_test = tree.predict(X_test)
+    accuracy_score(y_test,predictions_test)*100
+    print(classification_report(y_test,predictions_test))
+    
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
@@ -885,7 +916,7 @@ def dashboard_um():
     cluster_analysis_report = cluster_report(df, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
     return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
-                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores, cluster_analysis_report=cluster_analysis_report)
+                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores, cluster_analysis_report=cluster_analysis_report, html_data=html_data )
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -942,7 +973,7 @@ def dashboard_dois():
     caminho_arquivo = os.path.join(graficos_dir, 'df1_cotovelo.png')
     plt.savefig(caminho_arquivo)
 
-    kmeans = KMeans(n_clusters = 5, init = 'k-means++', random_state = 42)
+    kmeans = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
     kmeans.fit(df1_std)
     df1_segm_kmeans= df1_std.copy()
     df1_std['Segment'] = kmeans.labels_
@@ -961,7 +992,30 @@ def dashboard_dois():
         'soma_quadratica': Soma_distancia_quadratica,
         'df_segm_analysis': df1_to_dict
     }
-    
+
+    new_data = kmeans_scatterplot(df1, 'df1', 3)
+    html_data = new_data.head().to_html(classes='table')
+
+    X = new_data.iloc[:,0:18]
+    y = new_data.iloc[:,19]
+    uniformiza = MinMaxScaler()
+    novo_X = uniformiza.fit_transform(X)
+    tree = DecisionTreeClassifier()
+    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
+    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    grid.fit(novo_X,y)
+    best_clf = grid.best_estimator_
+    print(best_clf)
+    # Criação de conjuntos de treino e teste
+    X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
+    print (X_train.shape, y_train.shape)  # shape - mostra quantas linhas e colunas foram geradas
+    print (X_test.shape, y_test.shape)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=70, min_samples_leaf=5)
+    tree.fit(X_train,y_train)    
+    predictions_test = tree.predict(X_test)
+    accuracy_score(y_test,predictions_test)*100
+    print(classification_report(y_test,predictions_test))
+
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
     caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
     caminhos_graficos5 = [f'graficos/df1_pairplot.png']
@@ -975,7 +1029,7 @@ def dashboard_dois():
     cluster_analysis_report1 = cluster_report(df1, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
     return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
-                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores,  cluster_analysis_report1=cluster_analysis_report1)
+                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores,  cluster_analysis_report1=cluster_analysis_report1, html_data=html_data)
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -1051,6 +1105,29 @@ def dashboard_tres():
         'df_segm_analysis': df2_to_dict
     }
 
+    new_data = kmeans_scatterplot(df2, 'df2', 3)
+    html_data = new_data.head().to_html(classes='table')
+
+    X = new_data.iloc[:,0:21]
+    y = new_data.iloc[:,22]
+    uniformiza = MinMaxScaler()
+    novo_X = uniformiza.fit_transform(X)
+    tree = DecisionTreeClassifier()
+    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
+    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    grid.fit(novo_X,y)
+    best_clf = grid.best_estimator_
+    print(best_clf)
+    # Criação de conjuntos de treino e teste
+    X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
+    print (X_train.shape, y_train.shape)  # shape - mostra quantas linhas e colunas foram geradas
+    print (X_test.shape, y_test.shape)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=5)
+    tree.fit(X_train,y_train)   
+    predictions_test = tree.predict(X_test)
+    accuracy_score(y_test,predictions_test)*100 
+    print(classification_report(y_test,predictions_test))
+       
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
     caminhos_graficos6 = [f'graficos/df2_pairplot.png']
@@ -1058,13 +1135,13 @@ def dashboard_tres():
     caminhos_graficos14 = [f'graficos/df2_heatmap.png']
     caminhos_graficos15 = [f'graficos/df2_pairplot_numerical.png']
     caminhos_graficos18 = [f'graficos/df2_cotovelo.png']
-   
+
     kmeans = KMeans(n_clusters=3, random_state=42)
     cluster_labels = kmeans.fit_predict(df2)
     cluster_analysis_report2 = cluster_report(df2, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
     return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
-                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores, cluster_analysis_report2=cluster_analysis_report2)
+                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores, cluster_analysis_report2=cluster_analysis_report2, html_data=html_data)
 
 # Rota para exibir um gráfico específico
 @analise.route('/grafico/<campo>')
