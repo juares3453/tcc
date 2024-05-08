@@ -137,5 +137,54 @@
     
     <h2>Dados Clusterizados:</h2>
     <div>{{ html_data | safe }}</div>
+
+    <h1>Grid Search</h1>
+    <ul>
+          <li>{{ dados_texto.best }}</li>
+    </ul>
+
+    <h1>Dados de treino:</h1>
+    <ul>
+          <li>{{ dados_texto.train }}</li>
+    </ul>
+
+    <h1>Dados de teste:</h1>
+    <ul>
+          <li>{{ dados_texto.test }}</li>
+    </ul>
+
+    <h1>Acurácia:</h1>
+    <ul>
+          <li>{{ dados_texto.accuracy_test }}</li>
+    </ul>
+
+    <h1>Report:</h1>
+    <ul>
+          <li>{{ dados_texto.report_test }}</li>
+    </ul>
+
+    <h1>Matriz de Confusão Teste:</h1>
+    <img src="{{ url_for('static', filename='graficos/df1_confusion_matrix_test.png') }}" alt="Matriz de Confusão Teste">
+
+    <h1>Acurácia:</h1>
+    <ul>
+          <li>{{ dados_texto.accuracy_test1 }}</li>
+    </ul>
+
+    <h1>Report:</h1>
+    <ul>
+          <li>{{ dados_texto.report_test }}</li>
+    </ul>
+
+    <h1>Matriz de Confusão CV:</h1>
+    <img src="{{ url_for('static', filename='graficos/df1_confusion_matrix_cv.png') }}" alt="Matriz de Confusão CV">
+
+    <h1>Report:</h1>
+    <ul>
+          <li>{{ dados_texto.report }}</li>
+    </ul>
+    
+    <h1>Árvore de decisão:</h1>
+    <img src="{{ url_for('static', filename='graficos/df1_decision_tree.png') }}" alt="Árvore de decisão">
 </body>
 </html>

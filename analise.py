@@ -1,10 +1,8 @@
 from flask import Flask, render_template, send_file
-import pandas as pd
 from sqlalchemy import create_engine
 import seaborn as sns
 import matplotlib as mpl
 mpl.use('Agg')  # Definir um backend que não depende de GUI
-import matplotlib.pyplot as plt
 import os
 from io import StringIO
 import itertools
@@ -12,6 +10,8 @@ from tqdm import tqdm
 from time import time
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sb
 from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn import preprocessing
@@ -27,13 +27,12 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 from sklearn.metrics import silhouette_samples, silhouette_score
-from sklearn.tree import _tree, DecisionTreeClassifier
 from IPython.display import HTML, display
 from sklearn.tree import export_text
 from flask import send_file
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
+from sklearn.tree import DecisionTreeClassifier, export_graphviz, plot_tree, _tree
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -869,18 +868,6 @@ def dashboard_um():
     df_segm_analysis = df_std.groupby(['Segment']).mean()
     df_to_dict = df_segm_analysis.to_dict()
 
-    dados_texto = {
-        'colunas': df.columns.tolist(),
-        'dados_originais': df.head(5).to_html(classes='table'),
-        'infos_variaveis': infos_variaveis,
-        'shape': df.shape,
-        'describe': df.describe().to_html(classes='table'),
-        #'describe_include0': df.describe(include='O').to_html(classes='table'),
-        'limpeza': df.isnull().sum(),
-        'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df_to_dict
-    }
     new_data = kmeans_scatterplot(df, 'df', 2)
     html_data = new_data.head().to_html(classes='table')
  
@@ -893,24 +880,51 @@ def dashboard_um():
     grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
     grid.fit(novo_X,y)
     best_clf = grid.best_estimator_
-    print(best_clf)
+    best = best_clf
+    
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
-    print (X_train.shape, y_train.shape)  # shape - mostra quantas linhas e colunas foram geradas
-    print (X_test.shape, y_test.shape)
+    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
+    test = (X_test.shape, y_test.shape)
     tree = DecisionTreeClassifier(criterion='entropy', max_depth=40, min_samples_leaf=3)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
-    accuracy_score(y_test,predictions_test)*100
-    print(classification_report(y_test,predictions_test))
+    accuracy_test = accuracy_score(y_test,predictions_test)*100
+    report_test = classification_report(y_test,predictions_test)
+    
+    #Test
     cf = confusion_matrix(y_test,predictions_test)
     lbl1 = ['high', 'medium', 'low']
     lbl2 = ['high', 'medium', 'low']
-    sb.heatmap(cf,annot=True,cmap="Greens", fmt="d",xticklabels=lbl1,yticklabels=lbl2)
+    plt.figure(figsize=(10, 7))
+    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
+    plt.title("Confusion Matrix - Test")
+    plt.savefig(f'static/graficos/df_confusion_matrix_test.png')  # Salvando o gráfico
+    plt.close()
+
     #Cross Validation
     predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
-    accuracy_score(y,predictions_test)*100
+    accuracy_test1 = accuracy_score(y,predictions_test)*100
     
+    predictions = cross_val_predict (tree,novo_X,y,cv=10)
+    cf = confusion_matrix(y,predictions)
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
+    plt.figure(figsize=(10, 7))
+    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
+    plt.title("Confusion Matrix - Cross Validation")
+    plt.savefig(f'static/graficos/df_confusion_matrix_cv.png')  # Salvando o gráfico
+    plt.close()
+
+    report = classification_report(y,predictions)
+    
+    #Gera arvore de decisao
+    plt.figure(figsize=(50, 40))
+    plot_tree(tree, filled=True, fontsize=6)
+    plt.title("Decision Tree")
+    plt.savefig(f'static/graficos/df_decision_tree.png')  # Salvando o gráfico
+    plt.close()
+
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
@@ -919,14 +933,38 @@ def dashboard_um():
     caminhos_graficos10 = [f'graficos/df_heatmap.png']
     caminhos_graficos11 = [f'graficos/df_pairplot_numerical.png']
     caminhos_graficos16 = [f'graficos/df_cotovelo.png']
+    caminhos_graficos19 = [f'graficos/df_confusion_matrix_test.png']
+    caminhos_graficos20 = [f'graficos/df_confusion_matrix_cv.png']
+    caminhos_graficos21 = [f'graficos/df_decision_tree.png']
+
+    dados_texto = {
+        'colunas': df.columns.tolist(),
+        'dados_originais': df.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df.shape,
+        'describe': df.describe().to_html(classes='table'),
+        #'describe_include0': df.describe(include='O').to_html(classes='table'),
+        'limpeza': df.isnull().sum(),
+        'correlacoes': correlacoes,
+        'soma_quadratica': Soma_distancia_quadratica,
+        'df_segm_analysis': df_to_dict,
+        'best': best,
+        'train': train,
+        'test': test,
+        'accuracy_test': accuracy_test,
+        'report_test': report_test,
+        'accuracy_test1': accuracy_test1,
+        'report': report
+    }
 
     # Perform clustering using KMeans
     kmeans = KMeans(n_clusters=6, random_state=42)
     cluster_labels = kmeans.fit_predict(df)
     cluster_analysis_report = cluster_report(df, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
-    return render_template('dashboard_um.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
-                           caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores, cluster_analysis_report=cluster_analysis_report, html_data=html_data )
+    return render_template('dashboard_um.html', dados_texto=dados_texto,  
+                        caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores, cluster_analysis_report=cluster_analysis_report, html_data=html_data,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
+                        caminhos_graficos19=caminhos_graficos19, caminhos_graficos20=caminhos_graficos20, caminhos_graficos21=caminhos_graficos21)
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
@@ -990,19 +1028,6 @@ def dashboard_dois():
     df1_segm_analysis = df1_std.groupby(['Segment']).mean()
     df1_to_dict = df1_segm_analysis.to_dict()
 
-    dados_texto = {
-        'colunas': df1.columns.tolist(),
-        'dados_originais': df1.head(5).to_html(classes='table'),
-        'infos_variaveis': infos_variaveis,
-        'shape': df1.shape,
-        'describe': df1.describe().to_html(classes='table'),
-        #'describe_include0': df1.describe(include='O').to_html(classes='table'),
-        'limpeza': df1.isnull().sum(),
-        'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df1_to_dict
-    }
-
     new_data = kmeans_scatterplot(df1, 'df1', 3)
     html_data = new_data.head().to_html(classes='table')
 
@@ -1015,23 +1040,70 @@ def dashboard_dois():
     grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
     grid.fit(novo_X,y)
     best_clf = grid.best_estimator_
-    print(best_clf)
+    best = best_clf
+    
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
-    print (X_train.shape, y_train.shape)  # shape - mostra quantas linhas e colunas foram geradas
-    print (X_test.shape, y_test.shape)
+    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
+    test = (X_test.shape, y_test.shape)
     tree = DecisionTreeClassifier(criterion='entropy', max_depth=70, min_samples_leaf=5)
-    tree.fit(X_train,y_train)    
+    tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
-    accuracy_score(y_test,predictions_test)*100
-    print(classification_report(y_test,predictions_test))
+    accuracy_test = accuracy_score(y_test,predictions_test)*100
+    report_test = classification_report(y_test,predictions_test)
+    
+    #Test
     cf = confusion_matrix(y_test,predictions_test)
     lbl1 = ['high', 'medium', 'low']
     lbl2 = ['high', 'medium', 'low']
-    sb.heatmap(cf,annot=True,cmap="Greens", fmt="d",xticklabels=lbl1,yticklabels=lbl2)
+    plt.figure(figsize=(10, 7))
+    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
+    plt.title("Confusion Matrix - Test")
+    plt.savefig(f'static/graficos/df1_confusion_matrix_test.png')  # Salvando o gráfico
+    plt.close()
+
     #Cross Validation
     predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
-    accuracy_score(y,predictions_test)*100
+    accuracy_test1 = accuracy_score(y,predictions_test)*100
+    
+    predictions = cross_val_predict (tree,novo_X,y,cv=10)
+    cf = confusion_matrix(y,predictions)
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
+    plt.figure(figsize=(10, 7))
+    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
+    plt.title("Confusion Matrix - Cross Validation")
+    plt.savefig(f'static/graficos/df1_confusion_matrix_cv.png')  # Salvando o gráfico
+    plt.close()
+
+    report = classification_report(y,predictions)
+    
+    #Gera arvore de decisao
+    plt.figure(figsize=(40, 30))
+    plot_tree(tree, filled=True, fontsize=6)
+    plt.title("Decision Tree")
+    plt.savefig(f'static/graficos/df1_decision_tree.png')  # Salvando o gráfico
+    plt.close()
+
+    dados_texto = {
+        'colunas': df1.columns.tolist(),
+        'dados_originais': df1.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df1.shape,
+        'describe': df1.describe().to_html(classes='table'),
+        #'describe_include0': df1.describe(include='O').to_html(classes='table'),
+        'limpeza': df1.isnull().sum(),
+        'correlacoes': correlacoes,
+        'soma_quadratica': Soma_distancia_quadratica,
+        'df_segm_analysis': df1_to_dict,
+        'best': best,
+        'train': train,
+        'test': test,
+        'accuracy_test': accuracy_test,
+        'report_test': report_test,
+        'accuracy_test1': accuracy_test1,
+        'report': report
+    }
 
     caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
     caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
@@ -1040,13 +1112,17 @@ def dashboard_dois():
     caminhos_graficos12 = [f'graficos/df1_heatmap.png']
     caminhos_graficos13 = [f'graficos/df1_pairplot_numerical.png']
     caminhos_graficos17 = [f'graficos/df1_cotovelo.png']
-    
+    caminhos_graficos22 = [f'graficos/df1_confusion_matrix_test.png']
+    caminhos_graficos23 = [f'graficos/df1_confusion_matrix_cv.png']
+    caminhos_graficos24 = [f'graficos/df1_decision_tree.png']
+
+   
     kmeans = KMeans(n_clusters=5, random_state=42)
     cluster_labels = kmeans.fit_predict(df1)
     cluster_analysis_report1 = cluster_report(df1, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
     return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
-                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores,  cluster_analysis_report1=cluster_analysis_report1, html_data=html_data)
+                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores,  cluster_analysis_report1=cluster_analysis_report1, html_data=html_data, caminhos_graficos22=caminhos_graficos22, caminhos_graficos23=caminhos_graficos23, caminhos_graficos24=caminhos_graficos24)
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
@@ -1108,20 +1184,7 @@ def dashboard_tres():
     df2_std['Segment'] = kmeans.labels_
     df2_segm_analysis = df2_std.groupby(['Segment']).mean()
     df2_to_dict = df2_segm_analysis.to_dict()
-
-    dados_texto = {
-        'colunas': df2.columns.tolist(),
-        'dados_originais': df2.head(5).to_html(classes='table'),
-        'infos_variaveis': infos_variaveis,
-        'shape': df2.shape,
-        'describe': df2.describe().to_html(classes='table'),
-       # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
-        'limpeza': df2.isnull().sum(),
-        'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df2_to_dict
-    }
-
+    
     new_data = kmeans_scatterplot(df2, 'df2', 3)
     html_data = new_data.head().to_html(classes='table')
 
@@ -1134,23 +1197,70 @@ def dashboard_tres():
     grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
     grid.fit(novo_X,y)
     best_clf = grid.best_estimator_
-    print(best_clf)
+    best = best_clf
+    
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
-    print (X_train.shape, y_train.shape)  # shape - mostra quantas linhas e colunas foram geradas
-    print (X_test.shape, y_test.shape)
+    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
+    test = (X_test.shape, y_test.shape)
     tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=5)
-    tree.fit(X_train,y_train)   
+    tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
-    accuracy_score(y_test,predictions_test)*100 
-    print(classification_report(y_test,predictions_test))
+    accuracy_test = accuracy_score(y_test,predictions_test)*100
+    report_test = classification_report(y_test,predictions_test)
+    
+    #Test
     cf = confusion_matrix(y_test,predictions_test)
     lbl1 = ['high', 'medium', 'low']
     lbl2 = ['high', 'medium', 'low']
-    sb.heatmap(cf,annot=True,cmap="Greens", fmt="d",xticklabels=lbl1,yticklabels=lbl2)
+    plt.figure(figsize=(10, 7))
+    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
+    plt.title("Confusion Matrix - Test")
+    plt.savefig(f'static/graficos/df2_confusion_matrix_test.png')  # Salvando o gráfico
+    plt.close()
+
     #Cross Validation
     predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
-    accuracy_score(y,predictions_test)*100
+    accuracy_test1 = accuracy_score(y,predictions_test)*100
+    
+    predictions = cross_val_predict (tree,novo_X,y,cv=10)
+    cf = confusion_matrix(y,predictions)
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
+    plt.figure(figsize=(10, 7))
+    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
+    plt.title("Confusion Matrix - Cross Validation")
+    plt.savefig(f'static/graficos/df2_confusion_matrix_cv.png')  # Salvando o gráfico
+    plt.close()
+
+    report = classification_report(y,predictions)
+    
+    #Gera arvore de decisao
+    plt.figure(figsize=(20, 10))
+    plot_tree(tree, filled=True, fontsize=6)
+    plt.title("Decision Tree")
+    plt.savefig(f'static/graficos/df2_decision_tree.png')  # Salvando o gráfico
+    plt.close()
+
+    dados_texto = {
+        'colunas': df2.columns.tolist(),
+        'dados_originais': df2.head(5).to_html(classes='table'),
+        'infos_variaveis': infos_variaveis,
+        'shape': df2.shape,
+        'describe': df2.describe().to_html(classes='table'),
+       # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
+        'limpeza': df2.isnull().sum(),
+        'correlacoes': correlacoes,
+        'soma_quadratica': Soma_distancia_quadratica,
+        'df_segm_analysis': df2_to_dict,
+        'best': best,
+        'train': train,
+        'test': test,
+        'accuracy_test': accuracy_test,
+        'report_test': report_test,
+        'accuracy_test1': accuracy_test1,
+        'report': report
+    }
        
     caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
     caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
@@ -1159,13 +1269,16 @@ def dashboard_tres():
     caminhos_graficos14 = [f'graficos/df2_heatmap.png']
     caminhos_graficos15 = [f'graficos/df2_pairplot_numerical.png']
     caminhos_graficos18 = [f'graficos/df2_cotovelo.png']
+    caminhos_graficos25 = [f'graficos/df2_confusion_matrix_test.png']
+    caminhos_graficos26 = [f'graficos/df2_confusion_matrix_cv.png']
+    caminhos_graficos27 = [f'graficos/df2_decision_tree.png']
 
     kmeans = KMeans(n_clusters=3, random_state=42)
     cluster_labels = kmeans.fit_predict(df2)
     cluster_analysis_report2 = cluster_report(df2, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
     return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
-                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores, cluster_analysis_report2=cluster_analysis_report2, html_data=html_data)
+                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores, cluster_analysis_report2=cluster_analysis_report2, html_data=html_data, caminhos_graficos25=caminhos_graficos25, caminhos_graficos26=caminhos_graficos26, caminhos_graficos27=caminhos_graficos27)
 
 # Rota para exibir um gráfico específico
 @analise.route('/grafico/<campo>')
