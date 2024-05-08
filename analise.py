@@ -919,8 +919,8 @@ def dashboard_um():
     report = classification_report(y,predictions)
     
     #Gera arvore de decisao
-    plt.figure(figsize=(50, 40))
-    plot_tree(tree, filled=True, fontsize=6)
+    plt.figure(figsize=(100, 100))
+    plot_tree(tree, filled=True, fontsize=7)
     plt.title("Decision Tree")
     plt.savefig(f'static/graficos/df_decision_tree.png')  # Salvando o gráfico
     plt.close()
@@ -1080,7 +1080,7 @@ def dashboard_dois():
     
     #Gera arvore de decisao
     plt.figure(figsize=(40, 30))
-    plot_tree(tree, filled=True, fontsize=6)
+    plot_tree(tree, filled=True, fontsize=7)
     plt.title("Decision Tree")
     plt.savefig(f'static/graficos/df1_decision_tree.png')  # Salvando o gráfico
     plt.close()
@@ -1236,8 +1236,8 @@ def dashboard_tres():
     report = classification_report(y,predictions)
     
     #Gera arvore de decisao
-    plt.figure(figsize=(20, 10))
-    plot_tree(tree, filled=True, fontsize=6)
+    plt.figure(figsize=(70, 60))
+    plot_tree(tree, filled=True, fontsize=7)
     plt.title("Decision Tree")
     plt.savefig(f'static/graficos/df2_decision_tree.png')  # Salvando o gráfico
     plt.close()
