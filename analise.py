@@ -50,12 +50,12 @@ graficos_dir = 'static/graficos'
 os.makedirs(graficos_dir, exist_ok=True)
 
 # Configuração da conexão com o banco de dados
-server = 'JUARES-PC'
-database = 'softran_rasador'
-username = 'sa'
-password = 'sof1209'
-connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=SQL+Server'
-engine = create_engine(connection_str)
+# server = 'JUARES-PC'
+# database = 'softran_rasador'
+# username = 'sa'
+# password = 'sof1209'
+# connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=SQL+Server'
+# engine = create_engine(connection_str)
 
 # Lista de campos
 campos = ['Dia', 'Mes', 'Ano', 'Filial', 'conf_carregamento', 'conf_entrega',
@@ -70,15 +70,19 @@ campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'DsModelo', 'DsAnoFabricacao', 'V
 campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
  'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
 
-# Função para ler comandos SQL de um arquivo
-def ler_sql_do_arquivo(nome_do_arquivo):
-    with open(nome_do_arquivo, 'r') as arquivo:
-        return arquivo.read()
+# # Função para ler comandos SQL de um arquivo
+# def ler_sql_do_arquivo(nome_do_arquivo):
+#     with open(nome_do_arquivo, 'r') as arquivo:
+#         return arquivo.read()
     
-# Lendo os comandos SQL dos arquivos
-sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.sql")
-sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
-sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
+# # Lendo os comandos SQL dos arquivos
+# sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.sql")
+# sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
+# sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
+
+csv_filepath = 'C:\\Users\\juare\\Desktop\\TCC\\df.csv'
+csv_filepath1 = 'C:\\Users\\juare\\Desktop\\TCC\\df1.csv'
+csv_filepath2 = 'C:\\Users\\juare\\Desktop\\TCC\\df2.csv'
 
 def remover_valores_negativos(df):
     for coluna in df.columns:
@@ -87,9 +91,11 @@ def remover_valores_negativos(df):
     return df
 
 # Função para obter um DataFrame a partir de um comando SQL
-def get_dataframe(sql_comando):
-    with engine.connect() as conn:
-        df = pd.read_sql(sql_comando, conn)
+def get_dataframe(csv_filepath):
+    df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
+
+    # with engine.connect() as conn:
+    #     df = pd.read_sql(sql_comando, conn)
     df = remover_valores_negativos(df)
     df.dropna(inplace=True)
 
@@ -148,9 +154,8 @@ def get_dataframe(sql_comando):
     df['conf_entrega'] = StrList_to_UniqueIndexList1(df['conf_entrega'])
     return df
 
-def get_dataframe1(sql_comando1):
-    with engine.connect() as conn:
-        df1 = pd.read_sql(sql_comando1, conn)
+def get_dataframe1(csv_filepath1):
+    df1 = pd.read_csv(csv_filepath1, encoding='cp1252', delimiter=';')
     df1 = remover_valores_negativos(df1)
     df1.dropna(inplace=True)
 
@@ -187,11 +192,12 @@ def get_dataframe1(sql_comando1):
         return [index_of_dic2(dic2, p) for p in lista]
 
     df1['DsModelo'] = StrList_to_UniqueIndexList2(df1['DsModelo'])
+    df1['VlCusto'] = df1['VlCusto'].str.replace(',', '.').astype(float)
+    df1['Lucro'] = df1['Lucro'].str.replace(',', '.').astype(float)
     return df1
 
-def get_dataframe2(sql_comando2):
-    with engine.connect() as conn:
-        df2 = pd.read_sql(sql_comando2, conn)
+def get_dataframe2(csv_filepath2):
+    df2 = pd.read_csv(csv_filepath2, encoding='cp1252', delimiter=';')
     df2 = remover_valores_negativos(df2)
     df2.dropna(inplace=True)
 
@@ -279,6 +285,7 @@ def get_dataframe2(sql_comando2):
         return [index_of_dic7(dic7, p) for p in lista]
 
     df2['CLIENTE'] = StrList_to_UniqueIndexList7(df2['CLIENTE'])
+    df2['VlCusto'] = df2['VlCusto'].str.replace(',', '.').astype(float)
     return df2
 
 # Função para gerar e salvar gráficos
@@ -769,9 +776,9 @@ def index():
 # Exemplo de uso da função em uma rota Flask
 @analise.route('/gerar_graficos')
 def gerar_graficos():
-    df = get_dataframe(sql_comando)
-    df1 = get_dataframe1(sql_comando1)
-    df2 = get_dataframe2(sql_comando2)
+    df = get_dataframe(csv_filepath)
+    df1 = get_dataframe1(csv_filepath1)
+    df2 = get_dataframe2(csv_filepath2)
     
     gerar_e_salvar_graficos(df, campos, 'df')
     gerar_e_salvar_graficos(df1, campos1, 'df1')
@@ -805,7 +812,7 @@ def gerar_graficos():
 
 @analise.route('/dashboard_um')
 def dashboard_um():
-    df = get_dataframe(sql_comando)
+    df = get_dataframe(csv_filepath)
 
     #Data outliers
     df[df.duplicated(keep='first')]
@@ -968,7 +975,7 @@ def dashboard_um():
 
 @analise.route('/dashboard_dois')
 def dashboard_dois():
-    df1 = get_dataframe1(sql_comando1)
+    df1 = get_dataframe1(csv_filepath1)
 
     #Data outliers1
     df1[df1.duplicated(keep='first')]
@@ -1126,7 +1133,7 @@ def dashboard_dois():
 
 @analise.route('/dashboard_tres')
 def dashboard_tres():
-    df2 = get_dataframe2(sql_comando2)
+    df2 = get_dataframe2(csv_filepath2)
 
     #Data outliers1
     df2[df2.duplicated(keep='first')]
