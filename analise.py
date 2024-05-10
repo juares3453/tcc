@@ -58,12 +58,11 @@ os.makedirs(graficos_dir, exist_ok=True)
 # engine = create_engine(connection_str)
 
 # Lista de campos
-campos = ['Dia', 'Mes', 'Ano', 'Filial', 'conf_carregamento', 'conf_entrega',
-          'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total',
+campos = ['Dia', 'Mes', 'Ano', 'Filial', 'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total',
           'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 
           'peso_entregue', 'frete_total', 'frete_entregue']
 
-campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'DsModelo', 'DsAnoFabricacao', 'VlCusto', 'km_rodado', 'VlCapacVeic',
+campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
        'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
        'Lucro', '%Lucro']
 
@@ -93,11 +92,12 @@ def remover_valores_negativos(df):
 # Função para obter um DataFrame a partir de um comando SQL
 def get_dataframe(csv_filepath):
     df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
-
+    
+    df_new = df.drop(['conf_carregamento', 'conf_entrega'], axis=1)
     # with engine.connect() as conn:
     #     df = pd.read_sql(sql_comando, conn)
-    df = remover_valores_negativos(df)
-    df.dropna(inplace=True)
+    df_new1 = remover_valores_negativos(df_new)
+    df_new1.dropna(inplace=True)
 
     def index_of_dic(dic, key):
         return dic[key]
@@ -115,49 +115,51 @@ def get_dataframe(csv_filepath):
         return [index_of_dic(dic, p) for p in lista]
 
     # Supondo que 'df1' é o seu DataFrame
-    df['Filial'] = StrList_to_UniqueIndexList(df['Filial'])
+    df_new1['Filial'] = StrList_to_UniqueIndexList(df_new1['Filial'])
 
-    def index_of_dic2(dic2, key2):
-        return dic2[key2]
+    # def index_of_dic2(dic2, key2):
+    #     return dic2[key2]
 
-    def StrList_to_UniqueIndexList2(lista):
-        group = set(lista)
+    # def StrList_to_UniqueIndexList2(lista):
+    #     group = set(lista)
 
-        dic2 = {}
-        i = 0
-        for g in group:
-            if g not in dic2:
-                dic2[g] = i
-                i += 1
+    #     dic2 = {}
+    #     i = 0
+    #     for g in group:
+    #         if g not in dic2:
+    #             dic2[g] = i
+    #             i += 1 
 
-        return [index_of_dic2(dic2, p) for p in lista]
+    #     return [index_of_dic2(dic2, p) for p in lista]
 
-    # Supondo que 'df1' é o seu DataFrame
-    df['conf_carregamento'] = StrList_to_UniqueIndexList2(df['conf_carregamento'])
+    # # Supondo que 'df1' é o seu DataFrame
+    # df['conf_carregamento'] = StrList_to_UniqueIndexList2(df['conf_carregamento'])
 
-    def index_of_dic1(dic1, key1):
-        return dic1[key1]
+    # def index_of_dic1(dic1, key1):
+    #     return dic1[key1]
 
-    def StrList_to_UniqueIndexList1(lista):
-        group = set(lista)
+    # def StrList_to_UniqueIndexList1(lista):
+    #     group = set(lista)
 
-        dic1 = {}
-        i = 0
-        for g in group:
-            if g not in dic1:
-                dic1[g] = i
-                i += 1
+    #     dic1 = {}
+    #     i = 0
+    #     for g in group:
+    #         if g not in dic1:
+    #             dic1[g] = i
+    #             i += 1
 
-        return [index_of_dic1(dic1, p) for p in lista]
+    #     return [index_of_dic1(dic1, p) for p in lista]
 
-    # Supondo que 'df1' é o seu DataFrame
-    df['conf_entrega'] = StrList_to_UniqueIndexList1(df['conf_entrega'])
-    return df
+    # # Supondo que 'df1' é o seu DataFrame
+    # df['conf_entrega'] = StrList_to_UniqueIndexList1(df['conf_entrega'])
+    return df_new1
 
 def get_dataframe1(csv_filepath1):
     df1 = pd.read_csv(csv_filepath1, encoding='cp1252', delimiter=';')
-    df1 = remover_valores_negativos(df1)
-    df1.dropna(inplace=True)
+
+    df1_new = df1.drop(['DsModelo', 'DsAnoFabricacao'], axis=1)
+    df1_new1 = remover_valores_negativos(df1_new)
+    df1_new1.dropna(inplace=True)
 
     def index_of_dic1(dic1, key1):
         return dic1[key1]
@@ -174,27 +176,27 @@ def get_dataframe1(csv_filepath1):
 
         return [index_of_dic1(dic1, p) for p in lista]
 
-    df1['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df1['DsTpVeiculo'])
+    df1_new1['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df1_new1['DsTpVeiculo'])
 
-    def index_of_dic2(dic2, key2):
-        return dic2[key2]
+    # def index_of_dic2(dic2, key2):
+    #     return dic2[key2]
 
-    def StrList_to_UniqueIndexList2(lista):
-        group = set(lista)
+    # def StrList_to_UniqueIndexList2(lista):
+    #     group = set(lista)
 
-        dic2 = {}
-        i = 0
-        for g in group:
-            if g not in dic2:
-                dic2[g] = i
-                i += 1
+    #     dic2 = {}
+    #     i = 0
+    #     for g in group:
+    #         if g not in dic2:
+    #             dic2[g] = i
+    #             i += 1
 
-        return [index_of_dic2(dic2, p) for p in lista]
+    #     return [index_of_dic2(dic2, p) for p in lista]
 
-    df1['DsModelo'] = StrList_to_UniqueIndexList2(df1['DsModelo'])
-    df1['VlCusto'] = df1['VlCusto'].str.replace(',', '.').astype(float)
-    df1['Lucro'] = df1['Lucro'].str.replace(',', '.').astype(float)
-    return df1
+    # df1['DsModelo'] = StrList_to_UniqueIndexList2(df1['DsModelo'])
+    df1_new1['VlCusto'] = df1_new1['VlCusto'].str.replace(',', '.').astype(float)
+    df1_new1['Lucro'] = df1_new1['Lucro'].str.replace(',', '.').astype(float)
+    return df1_new1
 
 def get_dataframe2(csv_filepath2):
     df2 = pd.read_csv(csv_filepath2, encoding='cp1252', delimiter=';')
@@ -885,8 +887,8 @@ def dashboard_um():
     new_data = kmeans_scatterplot(df, 'df', 2)
     html_data = new_data.head().to_html(classes='table')
  
-    X = new_data.iloc[:,0:17]
-    y = new_data.iloc[:,18]
+    X = new_data.iloc[:,0:15]
+    y = new_data.iloc[:,16]
     uniformiza = MinMaxScaler()
     novo_X = uniformiza.fit_transform(X)
     tree = DecisionTreeClassifier()
@@ -1060,8 +1062,8 @@ def dashboard_dois():
     new_data = kmeans_scatterplot(df1, 'df1', 3)
     html_data = new_data.head().to_html(classes='table')
 
-    X = new_data.iloc[:,0:18]
-    y = new_data.iloc[:,19]
+    X = new_data.iloc[:,0:16]
+    y = new_data.iloc[:,17]
     uniformiza = MinMaxScaler()
     novo_X = uniformiza.fit_transform(X)
     tree = DecisionTreeClassifier()
