@@ -813,6 +813,8 @@ def gerar_graficos():
 @analise.route('/dashboard_um')
 def dashboard_um():
     df = get_dataframe(csv_filepath)
+    csv_filepath_old = 'C:\\Users\\juare\\Desktop\\TCC\\df.csv'
+    df_old = pd.read_csv(csv_filepath_old, encoding='cp1252', delimiter=';')
 
     #Data outliers
     df[df.duplicated(keep='first')]
@@ -822,6 +824,11 @@ def dashboard_um():
     buffer = StringIO()
     df.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
+
+    # Captura a saída de df.info()
+    buffer_old = StringIO()
+    df_old.info(buf=buffer_old)
+    infos_variaveis_old = buffer.getvalue()
 
     combinacoes = list(itertools.combinations(campos, 2))
 
@@ -945,8 +952,16 @@ def dashboard_um():
     caminhos_graficos21 = [f'graficos/df_decision_tree.png']
 
     dados_texto = {
+        'colunas_old': df_old.columns.tolist(),
+        'dados_originais_old': df_old.head(5).to_html(classes='table'),
+        'infos_variaveis_old': infos_variaveis_old,
+        'shape_old': df_old.shape,
+        'describe_old': df_old.describe().to_html(classes='table'),
+        'limpeza_old': df_old.isnull().sum(),
+        #'describe_include0': df.describe(include='O').to_html(classes='table'),
+        'limpeza': df.isnull().sum(),
         'colunas': df.columns.tolist(),
-        'dados_originais': df.head(5).to_html(classes='table'),
+        'dados_novos': df.head(5).to_html(classes='table'),
         'infos_variaveis': infos_variaveis,
         'shape': df.shape,
         'describe': df.describe().to_html(classes='table'),
@@ -977,6 +992,9 @@ def dashboard_um():
 def dashboard_dois():
     df1 = get_dataframe1(csv_filepath1)
 
+    csv_filepath_old1 = 'C:\\Users\\juare\\Desktop\\TCC\\df1.csv'
+    df1_old = pd.read_csv(csv_filepath_old1, encoding='cp1252', delimiter=';')
+
     #Data outliers1
     df1[df1.duplicated(keep='first')]
     df1.drop_duplicates(keep='first',inplace=True)
@@ -987,6 +1005,10 @@ def dashboard_dois():
     buffer = StringIO()
     df1.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
+
+    buffer_old1 = StringIO()
+    df1.info(buf=buffer_old1)
+    infos_variaveis_old1 = buffer_old1.getvalue()
 
     correlacoes = {}
     for campo1 in campos1:
@@ -1093,6 +1115,12 @@ def dashboard_dois():
     plt.close()
 
     dados_texto = {
+        'colunas_old': df1_old.columns.tolist(),
+        'dados_originais_old': df1_old.head(5).to_html(classes='table'),
+        'infos_variaveis_old': infos_variaveis_old1,
+        'shape_old': df1_old.shape,
+        'describe_old': df1_old.describe().to_html(classes='table'),
+        'limpeza_old': df1_old.isnull().sum(),
         'colunas': df1.columns.tolist(),
         'dados_originais': df1.head(5).to_html(classes='table'),
         'infos_variaveis': infos_variaveis,
@@ -1135,6 +1163,9 @@ def dashboard_dois():
 def dashboard_tres():
     df2 = get_dataframe2(csv_filepath2)
 
+    csv_filepath_old2 = 'C:\\Users\\juare\\Desktop\\TCC\\df2.csv'
+    df2_old = pd.read_csv(csv_filepath_old2, encoding='cp1252', delimiter=';')
+
     #Data outliers1
     df2[df2.duplicated(keep='first')]
     df2.drop_duplicates(keep='first',inplace=True)
@@ -1145,6 +1176,10 @@ def dashboard_tres():
     buffer = StringIO()
     df2.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
+
+    buffer_old2 = StringIO()
+    df2.info(buf=buffer_old2)
+    infos_variaveis_old2 = buffer_old2.getvalue()
 
     correlacoes = {}
     for campo1 in campos2:
@@ -1250,6 +1285,12 @@ def dashboard_tres():
     plt.close()
 
     dados_texto = {
+        'colunas_old': df2_old.columns.tolist(),
+        'dados_originais_old': df2_old.head(5).to_html(classes='table'),
+        'infos_variaveis_old': infos_variaveis_old2,
+        'shape_old': df2_old.shape,
+        'describe_old': df2_old.describe().to_html(classes='table'),
+        'limpeza_old': df2_old.isnull().sum(),
         'colunas': df2.columns.tolist(),
         'dados_originais': df2.head(5).to_html(classes='table'),
         'infos_variaveis': infos_variaveis,

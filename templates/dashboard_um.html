@@ -7,9 +7,19 @@
     <h1>Dashboard de Análise de Dados do caso um</h1>
 
     <h2>Dados Textuais</h2>
+    <p><strong>Colunas_old:</strong> {{ dados_texto.colunas_old }}</p>
+    <p><strong>Dados Originais_old:</strong></p>
+    <div>{{ dados_texto.dados_originais_old | safe }}</div>
+    <p><strong>Informações das Variáveis_old :</strong></p>
+    <pre>{{ dados_texto.infos_variaveis_old }}</pre>
+    <p><strong>Shape_old:</strong> {{ dados_texto.shape_old }}</p>
+    <p><strong>Describe_old:</strong></p>
+    <div>{{ dados_texto.describe_old | safe }}</div>
+    <p><strong>Null_old:</strong></p>
+    <div>{{ dados_texto.limpeza_old | safe }}</div>
     <p><strong>Colunas:</strong> {{ dados_texto.colunas }}</p>
-    <p><strong>Dados Originais:</strong></p>
-    <div>{{ dados_texto.dados_originais | safe }}</div>
+    <p><strong>Dados Novos:</strong></p>
+    <div>{{ dados_texto.dados_novos | safe }}</div>
     <p><strong>Informações das Variáveis:</strong></p>
     <pre>{{ dados_texto.infos_variaveis }}</pre>
     <p><strong>Shape:</strong> {{ dados_texto.shape }}</p>
