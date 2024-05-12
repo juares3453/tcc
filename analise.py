@@ -1,22 +1,16 @@
 from flask import Flask, render_template, send_file
-import seaborn as sns
 import matplotlib as mpl
-mpl.use('Agg')  # Definir um backend que não depende de GUI
 import os
 from io import StringIO
 import itertools
 from tqdm import tqdm
 from time import time
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sb
 from sklearn import metrics
-from sklearn.cluster import KMeans
 from sklearn import preprocessing
 from sklearn.preprocessing import scale
 from sklearn.decomposition import PCA
-import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
@@ -28,7 +22,6 @@ import numpy as np
 from sklearn.metrics import silhouette_samples, silhouette_score
 from IPython.display import HTML, display
 from sklearn.tree import export_text
-from flask import send_file
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeClassifier, export_graphviz, plot_tree, _tree
@@ -37,11 +30,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-import seaborn as sb
 from sklearn.model_selection import cross_val_predict
 
+mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
-
 analise = Flask(__name__)
 
 # Diretório para salvar os gráficos
@@ -229,11 +221,11 @@ def gerar_e_salvar_graficos(df, campos, nome_prefixo):
                     plt.ylabel('Contagem', size=14)
                     plt.title(f'Histograma (plt.hist) de {campo}', size=18)
                 elif df[campo].dtype in ['int64', 'float64']:
-                    sns.histplot(df[campo], kde=True, color='green')
+                    sb.histplot(df[campo], kde=True, color='green')
                     plt.ylabel('Densidade', size=14)
                     plt.title(f'Histograma (sns.histplot) de {campo}', size=18)
                 else:
-                    sns.countplot(x=campo, data=df)
+                    sb.countplot(x=campo, data=df)
                     plt.ylabel('Contagem', size=14)
                     plt.title(f'Distribuição de {campo}', size=18)
 
@@ -260,11 +252,11 @@ def gerar_e_salvar_graficos1(df1, campos1, nome_prefixo):
                     plt.ylabel('Contagem', size=14)
                     plt.title(f'Histograma (plt.hist) de {campo1}', size=18)
                 elif df1[campo1].dtype in ['int64', 'float64']:
-                    sns.histplot(df1[campo1], kde=True, color='green')
+                    sb.histplot(df1[campo1], kde=True, color='green')
                     plt.ylabel('Densidade', size=14)
                     plt.title(f'Histograma (sns.histplot) de {campo1}', size=18)
                 else:
-                    sns.countplot(x=campo1, data=df1)
+                    sb.countplot(x=campo1, data=df1)
                     plt.ylabel('Contagem', size=14)
                     plt.title(f'Distribuição de {campo1}', size=18)
 
@@ -289,11 +281,11 @@ def gerar_e_salvar_graficos2(df2, campos2, nome_prefixo):
                     plt.ylabel('Contagem', size=14)
                     plt.title(f'Histograma (plt.hist) de {campo2}', size=18)
                 elif df2[campo2].dtype in ['int64', 'float64']:
-                    sns.histplot(df2[campo2], kde=True, color='green')
+                    sb.histplot(df2[campo2], kde=True, color='green')
                     plt.ylabel('Densidade', size=14)
                     plt.title(f'Histograma (sns.histplot) de {campo2}', size=18)
                 else:
-                    sns.countplot(x=campo2, data=df2)
+                    sb.countplot(x=campo2, data=df2)
                     plt.ylabel('Contagem', size=14)
                     plt.title(f'Distribuição de {campo2}', size=18)
 
@@ -401,7 +393,7 @@ def gerar_e_salvar_graficos_pairplot(df, campos, nome_prefixo):
                 df_numeric = df[campos]
 
                 # Plote a matriz de gráficos de dispersão
-                sns.pairplot(df_numeric)
+                sb.pairplot(df_numeric)
              
                 # Salva o boxplot como uma imagem
                 caminho_arquivo = os.path.join(graficos_dir, f'{nome_prefixo}_pairplot.png')
@@ -419,7 +411,7 @@ def gerar_e_salvar_graficos_scatterplot(df, campos, nome_prefixo):
     with plt.rc_context(rc={'figure.max_open_warning': 0}):
         for campo1, campo2 in combinacoes:
             plt.figure(figsize=(10, 6))
-            sns.scatterplot(x=campo1, y=campo2, color='r', data=df)
+            sb.scatterplot(x=campo1, y=campo2, color='r', data=df)
             plt.title(f'{campo1} vs {campo2}', size=18)
             plt.xlabel(campo1, size=14)
             plt.ylabel(campo2, size=14)
@@ -441,7 +433,7 @@ def gerar_e_salvar_graficos_pairplot_numerical_values(df, campos, nome_prefixo):
 
                 # Plote a matriz de gráficos de dispersão
                 plt.figure(figsize=(15, 8))
-                sns.pairplot(df_numeric, 
+                sb.pairplot(df_numeric, 
                  markers="+",
                  diag_kind="kde",
                  kind='reg',
@@ -465,7 +457,7 @@ def gerar_e_salvar_graficos_heatmap(df, nome_prefixo):
             try:
                 plt.figure(figsize=(20, 20))
                 # Plote a matriz de gráficos de dispersão
-                sns.heatmap(df.corr(),annot=True,square=True,
+                sb.heatmap(df.corr(),annot=True,square=True,
                 cmap='RdBu',
                 vmax=1,
                 vmin=-1)
@@ -672,7 +664,7 @@ def kmeans_scatterplot(data, nome_prefixo, n_clusters, **kwargs):
 
     # Create scatterplot
     fig, ax = plt.subplots(figsize=(8, 6))
-    sns.scatterplot(x=pc[:,0], y=pc[:,1], hue=y_cluster, palette='bright', ax=ax)
+    sb.scatterplot(x=pc[:,0], y=pc[:,1], hue=y_cluster, palette='bright', ax=ax)
     ax.set(xlabel="PC1", ylabel="PC2", title="KMeans Clustering - Dataset")
     ax.legend(title='Cluster')
     
