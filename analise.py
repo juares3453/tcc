@@ -1,5 +1,4 @@
 from flask import Flask, render_template, send_file
-from sqlalchemy import create_engine
 import seaborn as sns
 import matplotlib as mpl
 mpl.use('Agg')  # Definir um backend que não depende de GUI
@@ -49,14 +48,6 @@ analise = Flask(__name__)
 graficos_dir = 'static/graficos'
 os.makedirs(graficos_dir, exist_ok=True)
 
-# Configuração da conexão com o banco de dados
-# server = 'JUARES-PC'
-# database = 'softran_rasador'
-# username = 'sa'
-# password = 'sof1209'
-# connection_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=SQL+Server'
-# engine = create_engine(connection_str)
-
 # Lista de campos
 campos = ['Dia', 'Mes', 'Ano', 'Filial', 'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total',
           'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 
@@ -68,16 +59,6 @@ campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacV
 
 campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
  'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
-
-# # Função para ler comandos SQL de um arquivo
-# def ler_sql_do_arquivo(nome_do_arquivo):
-#     with open(nome_do_arquivo, 'r') as arquivo:
-#         return arquivo.read()
-    
-# # Lendo os comandos SQL dos arquivos
-# sql_comando = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC um.sql")
-# sql_comando1 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC dois.sql")
-# sql_comando2 = ler_sql_do_arquivo("C:\\Users\\juare\\Desktop\\TCC\\Dados TCC tres.sql")
 
 csv_filepath = 'C:\\Users\\juare\\Desktop\\TCC\\df.csv'
 csv_filepath1 = 'C:\\Users\\juare\\Desktop\\TCC\\df1.csv'
@@ -94,8 +75,6 @@ def get_dataframe(csv_filepath):
     df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
     
     df_new = df.drop(['conf_carregamento', 'conf_entrega'], axis=1)
-    # with engine.connect() as conn:
-    #     df = pd.read_sql(sql_comando, conn)
     df_new1 = remover_valores_negativos(df_new)
     df_new1.dropna(inplace=True)
 
@@ -116,43 +95,6 @@ def get_dataframe(csv_filepath):
 
     # Supondo que 'df1' é o seu DataFrame
     df_new1['Filial'] = StrList_to_UniqueIndexList(df_new1['Filial'])
-
-    # def index_of_dic2(dic2, key2):
-    #     return dic2[key2]
-
-    # def StrList_to_UniqueIndexList2(lista):
-    #     group = set(lista)
-
-    #     dic2 = {}
-    #     i = 0
-    #     for g in group:
-    #         if g not in dic2:
-    #             dic2[g] = i
-    #             i += 1 
-
-    #     return [index_of_dic2(dic2, p) for p in lista]
-
-    # # Supondo que 'df1' é o seu DataFrame
-    # df['conf_carregamento'] = StrList_to_UniqueIndexList2(df['conf_carregamento'])
-
-    # def index_of_dic1(dic1, key1):
-    #     return dic1[key1]
-
-    # def StrList_to_UniqueIndexList1(lista):
-    #     group = set(lista)
-
-    #     dic1 = {}
-    #     i = 0
-    #     for g in group:
-    #         if g not in dic1:
-    #             dic1[g] = i
-    #             i += 1
-
-    #     return [index_of_dic1(dic1, p) for p in lista]
-
-    # # Supondo que 'df1' é o seu DataFrame
-    # df['conf_entrega'] = StrList_to_UniqueIndexList1(df['conf_entrega'])
-    return df_new1
 
 def get_dataframe1(csv_filepath1):
     df1 = pd.read_csv(csv_filepath1, encoding='cp1252', delimiter=';')
@@ -177,23 +119,6 @@ def get_dataframe1(csv_filepath1):
         return [index_of_dic1(dic1, p) for p in lista]
 
     df1_new1['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df1_new1['DsTpVeiculo'])
-
-    # def index_of_dic2(dic2, key2):
-    #     return dic2[key2]
-
-    # def StrList_to_UniqueIndexList2(lista):
-    #     group = set(lista)
-
-    #     dic2 = {}
-    #     i = 0
-    #     for g in group:
-    #         if g not in dic2:
-    #             dic2[g] = i
-    #             i += 1
-
-    #     return [index_of_dic2(dic2, p) for p in lista]
-
-    # df1['DsModelo'] = StrList_to_UniqueIndexList2(df1['DsModelo'])
     df1_new1['VlCusto'] = df1_new1['VlCusto'].str.replace(',', '.').astype(float)
     df1_new1['Lucro'] = df1_new1['Lucro'].str.replace(',', '.').astype(float)
     return df1_new1
@@ -399,9 +324,6 @@ def gerar_e_salvar_graficos3(df, campos, nome_prefixo):
                 IQR = Q3 - Q1
                 outliers = df[(df[campo] < Q1 - 1.5 * IQR) | (df[campo] > Q3 + 1.5 * IQR)]
 
-                # Salva os outliers em um arquivo CSV
-                #outliers.to_csv(os.path.join(graficos_dir, f'{nome_prefixo}_{campo}_outliers.csv'), index=False)
-
                 # Remove os outliers do DataFrame original (opcional)
                 df = df[~df.index.isin(outliers.index)]
 
@@ -431,9 +353,6 @@ def gerar_e_salvar_graficos4(df1, campos1, nome_prefixo):
                 IQR = Q3 - Q1
                 outliers = df1[(df1[campo1] < Q1 - 1.5 * IQR) | (df1[campo1] > Q3 + 1.5 * IQR)]
 
-                # Salva os outliers em um arquivo CSV
-                #outliers.to_csv(os.path.join(graficos_dir, f'{nome_prefixo}_{campo1}_outliers.csv'), index=False)
-
                 # Remove os outliers do DataFrame original (opcional)
                 df1 = df1[~df1.index.isin(outliers.index)]
 
@@ -456,16 +375,12 @@ def gerar_e_salvar_graficos5(df2, campos2, nome_prefixo):
                 IQR = Q3 - Q1
                 outliers = df2[(df2[campo2] < Q1 - 1.5 * IQR) | (df2[campo2] > Q3 + 1.5 * IQR)]
 
-                # Salva os outliers em um arquivo CSV
-                #outliers.to_csv(os.path.join(graficos_dir, f'{nome_prefixo}_{campo2}_outliers.csv'), index=False)
-
                 # Remove os outliers do DataFrame original (opcional)
                 df2 = df2[~df2.index.isin(outliers.index)]
 
                 plt.figure(figsize=(10, 6))
 
                 # Cria um boxplot
-
                 plt.boxplot(df2[campo2], vert=False, notch=True, patch_artist=True)
                 plt.title(f'Box (plt.boxplot) de {campo2}', size=18)
                 plt.xlabel(campo2, size=14)
@@ -775,7 +690,6 @@ def kmeans_scatterplot(data, nome_prefixo, n_clusters, **kwargs):
 def index():
     return render_template('index.html')
 
-# Exemplo de uso da função em uma rota Flask
 @analise.route('/gerar_graficos')
 def gerar_graficos():
     df = get_dataframe(csv_filepath)
@@ -960,14 +874,12 @@ def dashboard_um():
         'shape_old': df_old.shape,
         'describe_old': df_old.describe().to_html(classes='table'),
         'limpeza_old': df_old.isnull().sum(),
-        #'describe_include0': df.describe(include='O').to_html(classes='table'),
         'limpeza': df.isnull().sum(),
         'colunas': df.columns.tolist(),
         'dados_novos': df.head(5).to_html(classes='table'),
         'infos_variaveis': infos_variaveis,
         'shape': df.shape,
         'describe': df.describe().to_html(classes='table'),
-        #'describe_include0': df.describe(include='O').to_html(classes='table'),
         'limpeza': df.isnull().sum(),
         'correlacoes': correlacoes,
         'soma_quadratica': Soma_distancia_quadratica,
@@ -1128,7 +1040,6 @@ def dashboard_dois():
         'infos_variaveis': infos_variaveis,
         'shape': df1.shape,
         'describe': df1.describe().to_html(classes='table'),
-        #'describe_include0': df1.describe(include='O').to_html(classes='table'),
         'limpeza': df1.isnull().sum(),
         'correlacoes': correlacoes,
         'soma_quadratica': Soma_distancia_quadratica,
@@ -1298,7 +1209,6 @@ def dashboard_tres():
         'infos_variaveis': infos_variaveis,
         'shape': df2.shape,
         'describe': df2.describe().to_html(classes='table'),
-       # 'describe_include0': df2.describe(include='O').to_html(classes='table'),
         'limpeza': df2.isnull().sum(),
         'correlacoes': correlacoes,
         'soma_quadratica': Soma_distancia_quadratica,
