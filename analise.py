@@ -62,7 +62,7 @@ def remover_valores_negativos(df):
             df[coluna] = df[coluna].apply(lambda x: x if x >= 0 else np.nan)
     return df
 
-# Função para obter um DataFrame a partir de um comando SQL
+# Função para obter um DataFrame a partir de um arquivo .csv
 def get_dataframe(csv_filepath):
     df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
     
@@ -725,8 +725,8 @@ def dashboard_um():
     df_old = pd.read_csv(csv_filepath_old, encoding='cp1252', delimiter=';')
 
     #Data outliers
-    df[df.duplicated(keep='first')]
-    df.drop_duplicates(keep='first',inplace=True)
+    # df[df.duplicated(keep='first')]
+    # df.drop_duplicates(keep='first',inplace=True)
 
     # Captura a saída de df.info()
     buffer = StringIO()
