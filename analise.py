@@ -87,6 +87,7 @@ def get_dataframe(csv_filepath):
 
     # Supondo que 'df1' é o seu DataFrame
     df_new1['Filial'] = StrList_to_UniqueIndexList(df_new1['Filial'])
+    return df_new1
 
 def get_dataframe1(csv_filepath1):
     df1 = pd.read_csv(csv_filepath1, encoding='cp1252', delimiter=';')
@@ -725,10 +726,12 @@ def dashboard_um():
     df_old = pd.read_csv(csv_filepath_old, encoding='cp1252', delimiter=';')
 
     #Data outliers
-    # df[df.duplicated(keep='first')]
-    # df.drop_duplicates(keep='first',inplace=True)
+    df[df.duplicated(keep='first')]
+    df.drop_duplicates(keep='first',inplace=True)
 
-    # Captura a saída de df.info()
+    combinacoes = list(itertools.combinations(campos, 2))
+
+     # Captura a saída de df.info()
     buffer = StringIO()
     df.info(buf=buffer)
     infos_variaveis = buffer.getvalue()
@@ -736,9 +739,7 @@ def dashboard_um():
     # Captura a saída de df.info()
     buffer_old = StringIO()
     df_old.info(buf=buffer_old)
-    infos_variaveis_old = buffer.getvalue()
-
-    combinacoes = list(itertools.combinations(campos, 2))
+    infos_variaveis_old = buffer_old.getvalue()
 
     # Calculando correlação para todos os pares de campos
     correlacoes = {}
@@ -748,6 +749,8 @@ def dashboard_um():
                 correlacao = df.corr()[campo1][campo2]
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
+
+    df.dropna(inplace=True)       
 
     scaler = StandardScaler()
     df_std = scaler.fit_transform(df)
