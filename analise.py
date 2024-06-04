@@ -52,9 +52,9 @@ campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacV
 campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
  'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
 
-csv_filepath = 'C:\\Users\\juare\\Desktop\\TCC\\df.csv'
-csv_filepath1 = 'C:\\Users\\juare\\Desktop\\TCC\\df1.csv'
-csv_filepath2 = 'C:\\Users\\juare\\Desktop\\TCC\\df2.csv'
+csv_filepath = 'C:\\Users\\babid\\TCC\\df.csv'
+csv_filepath1 = 'C:\\Users\\babid\\TCC\\df1.csv'
+csv_filepath2 = 'C:\\Users\\babid\\TCC\\df2.csv'
 
 def remover_valores_negativos(df):
     for coluna in df.columns:
@@ -62,149 +62,33 @@ def remover_valores_negativos(df):
             df[coluna] = df[coluna].apply(lambda x: x if x >= 0 else np.nan)
     return df
 
-# Função para obter um DataFrame a partir de um arquivo .csv
 def get_dataframe(csv_filepath):
     df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
-    
     df_new = df.drop(['conf_carregamento', 'conf_entrega'], axis=1)
-    df_new1 = remover_valores_negativos(df_new)
-    df_new1.dropna(inplace=True)
-
-    def index_of_dic(dic, key):
-        return dic[key]
-
-    def StrList_to_UniqueIndexList(lista):
-        group = set(lista)
-
-        dic = {}
-        i = 0
-        for g in group:
-            if g not in dic:
-                dic[g] = i
-                i += 1
-
-        return [index_of_dic(dic, p) for p in lista]
-
-    # Supondo que 'df1' é o seu DataFrame
-    df_new1['Filial'] = StrList_to_UniqueIndexList(df_new1['Filial'])
-    return df_new1
+    df_new = remover_valores_negativos(df_new)
+    df_new.dropna(inplace=True)
+    df_new['Filial'] = pd.factorize(df_new['Filial'])[0]
+    return df_new
 
 def get_dataframe1(csv_filepath1):
     df1 = pd.read_csv(csv_filepath1, encoding='cp1252', delimiter=';')
-
     df1_new = df1.drop(['DsModelo', 'DsAnoFabricacao'], axis=1)
-    df1_new1 = remover_valores_negativos(df1_new)
-    df1_new1.dropna(inplace=True)
-
-    def index_of_dic1(dic1, key1):
-        return dic1[key1]
-
-    def StrList_to_UniqueIndexList1(lista):
-        group = set(lista)
-
-        dic1 = {}
-        i = 0
-        for g in group:
-             if g not in dic1:
-                dic1[g] = i
-                i += 1
-
-        return [index_of_dic1(dic1, p) for p in lista]
-
-    df1_new1['DsTpVeiculo'] = StrList_to_UniqueIndexList1(df1_new1['DsTpVeiculo'])
-    df1_new1['VlCusto'] = df1_new1['VlCusto'].str.replace(',', '.').astype(float)
-    df1_new1['Lucro'] = df1_new1['Lucro'].str.replace(',', '.').astype(float)
-    return df1_new1
+    df1_new = remover_valores_negativos(df1_new)
+    df1_new.dropna(inplace=True)
+    df1_new['DsTpVeiculo'] = pd.factorize(df1_new['DsTpVeiculo'])[0]
+    df1_new['VlCusto'] = df1_new['VlCusto'].str.replace(',', '.').astype(float)
+    df1_new['Lucro'] = df1_new['Lucro'].str.replace(',', '.').astype(float)
+    return df1_new
 
 def get_dataframe2(csv_filepath2):
     df2 = pd.read_csv(csv_filepath2, encoding='cp1252', delimiter=';')
     df2 = remover_valores_negativos(df2)
     df2.dropna(inplace=True)
-
-    def index_of_dic3(dic3, key3):
-        return dic3[key3]
-
-    def StrList_to_UniqueIndexList3(lista):
-        group = set(lista)
-
-        dic3 = {}
-        i = 0
-        for g in group:
-             if g not in dic3:
-                dic3[g] = i
-                i += 1
-
-        return [index_of_dic3(dic3, p) for p in lista]
-
-    df2['DsLocal'] = StrList_to_UniqueIndexList3(df2['DsLocal'])
-
-    def index_of_dic4(dic4, key4):
-        return dic4[key4]
-
-    def StrList_to_UniqueIndexList4(lista):
-        group = set(lista)
-
-        dic4 = {}
-        i = 0
-        for g in group:
-            if g not in dic4:
-                dic4[g] = i
-                i += 1
-
-        return [index_of_dic4(dic4, p) for p in lista]
-
-    df2['tp_ocor'] = StrList_to_UniqueIndexList4(df2['tp_ocor'])
-
-    def index_of_dic5(dic5, key5):
-        return dic5[key5]
-
-    def StrList_to_UniqueIndexList5(lista):
-        group = set(lista)
-
-        dic5 = {}
-        i = 0
-        for g in group:
-            if g not in dic5:
-                dic5[g] = i
-                i += 1
-
-        return [index_of_dic5(dic5, p) for p in lista]
-
-    df2['Situacao'] = StrList_to_UniqueIndexList5(df2['Situacao'])
-
-    def index_of_dic6(dic6, key6):
-        return dic6[key6]
-
-    def StrList_to_UniqueIndexList6(lista):
-        group = set(lista)
-
-        dic6 = {}
-        i = 0
-        for g in group:
-            if g not in dic6:
-                dic6[g] = i
-                i += 1
-
-        return [index_of_dic6(dic6, p) for p in lista]
-
-    df2['dsocorrencia'] = StrList_to_UniqueIndexList6(df2['dsocorrencia'])
-
-    def index_of_dic7(dic7, key7):
-        return dic7[key7]
-
-    def StrList_to_UniqueIndexList7(lista):
-        group = set(lista)
-
-        dic7 = {}
-        i = 0
-        for g in group:
-            if g not in dic7:
-                dic7[g] = i
-                i += 1
-
-        return [index_of_dic7(dic7, p) for p in lista]
-
-    df2['CLIENTE'] = StrList_to_UniqueIndexList7(df2['CLIENTE'])
+    df2['DsLocal'] = pd.factorize(df2['DsLocal'])[0]
+    df2['tp_ocor'] = pd.factorize(df2['tp_ocor'])[0]
+    df2['Situacao'] = pd.factorize(df2['Situacao'])[0]
+    df2['dsocorrencia'] = pd.factorize(df2['dsocorrencia'])[0]
+    df2['CLIENTE'] = pd.factorize(df2['CLIENTE'])[0]
     df2['VlCusto'] = df2['VlCusto'].str.replace(',', '.').astype(float)
     return df2
 
@@ -722,7 +606,7 @@ def gerar_graficos():
 @analise.route('/dashboard_um')
 def dashboard_um():
     df = get_dataframe(csv_filepath)
-    csv_filepath_old = 'C:\\Users\\juare\\Desktop\\TCC\\df.csv'
+    csv_filepath_old = 'C:\\Users\\babid\\TCC\\df.csv'
     df_old = pd.read_csv(csv_filepath_old, encoding='cp1252', delimiter=';')
 
     #Data outliers
@@ -850,6 +734,56 @@ def dashboard_um():
     plt.savefig(f'static/graficos/df_decision_tree.png')  # Salvando o gráfico
     plt.close()
 
+    # Plotando dois componentes principais para visualizar os clusters
+    plt.scatter(new_data['km_rodado'], new_data['entregas_realizadas'], c=y, cmap='viridis')
+    plt.xlabel('Km Rodado')
+    plt.ylabel('Entregas Realizadas')
+    plt.title('Visualização dos Clusters')
+    plt.savefig(f'static/graficos/df_km_ent_clus.png')
+    plt.close()
+
+    centroids = kmeans.cluster_centers_
+    plt.scatter(new_data['km_rodado'], new_data['entregas_realizadas'], c=y, cmap='viridis', marker='o')
+    plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='x', s=100)  # Centroides em vermelho
+    plt.xlabel('Km Rodado')
+    plt.ylabel('Entregas Realizadas')
+    plt.title('Clusters com Centroides')
+    plt.savefig(f'static/graficos/df_km_ent_clus_centers.png')
+    plt.close()
+
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(new_data.drop('Cluster', axis=1))
+    plt.scatter(principalComponents[:, 0], principalComponents[:, 1], c=y, cmap='viridis')
+    plt.xlabel('Componente Principal 1')
+    plt.ylabel('Componente Principal 2')
+    plt.title('PCA dos Clusters')
+    plt.savefig(f'static/graficos/df_pca.png')
+    plt.close()
+
+    corr_matrix = new_data.drop('Cluster', axis=1).corr()
+    sb.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+    plt.title('Matriz de Correlação')
+    plt.savefig(f'static/graficos/df_correlacao.png')
+    plt.close()
+    
+    for cluster in new_data['Cluster'].unique():
+        cluster_data = new_data[new_data['Cluster'] == cluster]
+    plt.plot(cluster_data['tempo_total'], cluster_data['km_rodado'], label=f'Cluster {cluster}')
+    plt.xlabel('Tempo Total')
+    plt.ylabel('Km Rodado')
+    plt.title('Tendência Temporal por Cluster')
+    plt.legend()
+    plt.savefig(f'static/graficos/df_clusters_tempo.png')
+    plt.close()
+
+    cluster_means = new_data.groupby('Cluster').mean()
+    cluster_means.plot(kind='bar', figsize=(10, 6))
+    plt.title('Médias das Variáveis por Cluster')
+    plt.xlabel('Cluster')
+    plt.ylabel('Média')
+    plt.savefig(f'static/graficos/df_clusters_medias.png')
+    plt.close()
+
     # Lista para armazenar os caminhos dos gráficos
     caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
     caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
@@ -901,7 +835,7 @@ def dashboard_um():
 def dashboard_dois():
     df1 = get_dataframe1(csv_filepath1)
 
-    csv_filepath_old1 = 'C:\\Users\\juare\\Desktop\\TCC\\df1.csv'
+    csv_filepath_old1 = 'C:\\Users\\babid\\TCC\\df1.csv'
     df1_old = pd.read_csv(csv_filepath_old1, encoding='cp1252', delimiter=';')
 
     #Data outliers1
@@ -1071,7 +1005,7 @@ def dashboard_dois():
 def dashboard_tres():
     df2 = get_dataframe2(csv_filepath2)
 
-    csv_filepath_old2 = 'C:\\Users\\juare\\Desktop\\TCC\\df2.csv'
+    csv_filepath_old2 = 'C:\\Users\\babid\\TCC\\df2.csv'
     df2_old = pd.read_csv(csv_filepath_old2, encoding='cp1252', delimiter=';')
 
     #Data outliers1
