@@ -52,9 +52,9 @@ campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacV
 campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
  'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
 
-csv_filepath = os.path.join('..', 'df.csv')
-csv_filepath1 = os.path.join('..', 'df1.csv')
-csv_filepath2 = os.path.join('..', 'df2.csv')
+csv_filepath = os.path.join('df.csv')
+csv_filepath1 = os.path.join('df1.csv')
+csv_filepath2 = os.path.join('df2.csv')
 
 def remover_valores_negativos(df):
     for coluna in df.columns:
@@ -603,244 +603,15 @@ def gerar_graficos():
     
     return "Gráficos gerados e salvos com sucesso!"
 
-@analise.route('/dashboard_um')
-def dashboard_um():
-    df = get_dataframe(csv_filepath)
-    csv_filepath_old = os.path.join('..', 'df.csv')
-    df_old = pd.read_csv(csv_filepath_old, encoding='cp1252', delimiter=';')
-
-    #Data outliers
-    df[df.duplicated(keep='first')]
-    df.drop_duplicates(keep='first',inplace=True)
-
-    combinacoes = list(itertools.combinations(campos, 2))
-
-     # Captura a saída de df.info()
-    buffer = StringIO()
-    df.info(buf=buffer)
-    infos_variaveis = buffer.getvalue()
-
-    # Captura a saída de df.info()
-    buffer_old = StringIO()
-    df_old.info(buf=buffer_old)
-    infos_variaveis_old = buffer_old.getvalue()
-
-    # Calculando correlação para todos os pares de campos
-    correlacoes = {}
-    for campo1 in campos:
-        for campo2 in campos:
-            if campo1 != campo2:
-                correlacao = df.corr()[campo1][campo2]
-                chave = f'{campo1} - {campo2}'
-                correlacoes[chave] = correlacao
-
-    df.dropna(inplace=True)       
-
-    scaler = StandardScaler()
-    df_std = scaler.fit_transform(df)
-    df_std = pd.DataFrame(data = df_std,columns = df.columns)
-
-    Soma_distancia_quadratica = []
-    K = range(1,11)
-    for k in K:
-     km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
-     km = km.fit(df_std)
-     Soma_distancia_quadratica.append(km.inertia_)
-
-    silhouette_scores = []
-    K = range(2, 10)
-    for k in K:
-        kmeans = KMeans(n_clusters=k, random_state=10)
-        labels = kmeans.fit_predict(df_std)
-        score = silhouette_score(df_std, labels)
-        silhouette_scores.append(score)
-        print(f'For n_clusters={k}, Silhouette score is {score}')
-    
-    plt.figure(figsize = (10,8))
-    plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
-    plt.xlabel('Number of Clusters')
-    plt.ylabel('Soma_distancia_quadratica')
-    plt.title('Elbow')
-    caminho_arquivo = os.path.join(graficos_dir, 'df_cotovelo.png')
-    plt.savefig(caminho_arquivo)
-
-    K = range(2,11)
-    for k in K:
-     km = KMeans(n_clusters=k)
-     km = km.fit(df_std)
-     s_score=metrics.silhouette_score(df_std, km.labels_, metric='euclidean',sample_size=24527)
-
-    kmeans = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
-    kmeans.fit(df_std)
-    df_segm_kmeans= df_std.copy()
-    df_std['Segment'] = kmeans.labels_
-    df_segm_analysis = df_std.groupby(['Segment']).mean()
-    df_to_dict = df_segm_analysis.to_dict()
-
-    new_data = kmeans_scatterplot(df, 'df', 2)
-    html_data = new_data.head().to_html(classes='table')
- 
-    X = new_data.iloc[:,0:15]
-    y = new_data.iloc[:,16]
-    uniformiza = MinMaxScaler()
-    novo_X = uniformiza.fit_transform(X)
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(novo_X,y)
-    best_clf = grid.best_estimator_
-    best = best_clf
-    
-    # Criação de conjuntos de treino e teste
-    X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
-    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
-    test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=40, min_samples_leaf=3)
-    tree.fit(X_train,y_train)
-    predictions_test = tree.predict(X_test)
-    accuracy_test = accuracy_score(y_test,predictions_test)*100
-    report_test = classification_report(y_test,predictions_test)
-    
-    #Test
-    cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
-    plt.figure(figsize=(10, 7))
-    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
-    plt.title("Confusion Matrix - Test")
-    plt.savefig(f'static/graficos/df_confusion_matrix_test.png')  # Salvando o gráfico
-    plt.close()
-
-    #Cross Validation
-    predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
-    accuracy_test1 = accuracy_score(y,predictions_test)*100
-    
-    predictions = cross_val_predict (tree,novo_X,y,cv=10)
-    cf = confusion_matrix(y,predictions)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
-    plt.figure(figsize=(10, 7))
-    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
-    plt.title("Confusion Matrix - Cross Validation")
-    plt.savefig(f'static/graficos/df_confusion_matrix_cv.png')  # Salvando o gráfico
-    plt.close()
-
-    report = classification_report(y,predictions)
-    
-    #Gera arvore de decisao
-    plt.figure(figsize=(100, 100))
-    plot_tree(tree, filled=True, fontsize=7)
-    plt.title("Decision Tree")
-    plt.savefig(f'static/graficos/df_decision_tree.png')  # Salvando o gráfico
-    plt.close()
-
-    # Plotando dois componentes principais para visualizar os clusters
-    plt.scatter(new_data['km_rodado'], new_data['entregas_realizadas'], c=y, cmap='viridis')
-    plt.xlabel('Km Rodado')
-    plt.ylabel('Entregas Realizadas')
-    plt.title('Visualização dos Clusters')
-    plt.savefig(f'static/graficos/df_km_ent_clus.png')
-    plt.close()
-
-    centroids = kmeans.cluster_centers_
-    plt.scatter(new_data['km_rodado'], new_data['entregas_realizadas'], c=y, cmap='viridis', marker='o')
-    plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='x', s=100)  # Centroides em vermelho
-    plt.xlabel('Km Rodado')
-    plt.ylabel('Entregas Realizadas')
-    plt.title('Clusters com Centroides')
-    plt.savefig(f'static/graficos/df_km_ent_clus_centers.png')
-    plt.close()
-
-    pca = PCA(n_components=2)
-    principalComponents = pca.fit_transform(new_data.drop('Cluster', axis=1))
-    plt.scatter(principalComponents[:, 0], principalComponents[:, 1], c=y, cmap='viridis')
-    plt.xlabel('Componente Principal 1')
-    plt.ylabel('Componente Principal 2')
-    plt.title('PCA dos Clusters')
-    plt.savefig(f'static/graficos/df_pca.png')
-    plt.close()
-
-    corr_matrix = new_data.drop('Cluster', axis=1).corr()
-    sb.heatmap(corr_matrix, annot=True, cmap='coolwarm')
-    plt.title('Matriz de Correlação')
-    plt.savefig(f'static/graficos/df_correlacao.png')
-    plt.close()
-    
-    for cluster in new_data['Cluster'].unique():
-        cluster_data = new_data[new_data['Cluster'] == cluster]
-    plt.plot(cluster_data['tempo_total'], cluster_data['km_rodado'], label=f'Cluster {cluster}')
-    plt.xlabel('Tempo Total')
-    plt.ylabel('Km Rodado')
-    plt.title('Tendência Temporal por Cluster')
-    plt.legend()
-    plt.savefig(f'static/graficos/df_clusters_tempo.png')
-    plt.close()
-
-    cluster_means = new_data.groupby('Cluster').mean()
-    cluster_means.plot(kind='bar', figsize=(10, 6))
-    plt.title('Médias das Variáveis por Cluster')
-    plt.xlabel('Cluster')
-    plt.ylabel('Média')
-    plt.savefig(f'static/graficos/df_clusters_medias.png')
-    plt.close()
-
-    # Lista para armazenar os caminhos dos gráficos
-    caminhos_graficos = [f'graficos/df_{campo}.png' for campo in campos]
-    caminhos_graficos1 = [f'graficos/df_{campo}_boxplot.png' for campo in campos]
-    caminhos_graficos4 = [f'graficos/df_pairplot.png']
-    caminhos_graficos7 = [f'graficos/df_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
-    caminhos_graficos10 = [f'graficos/df_heatmap.png']
-    caminhos_graficos11 = [f'graficos/df_pairplot_numerical.png']
-    caminhos_graficos16 = [f'graficos/df_cotovelo.png']
-    caminhos_graficos19 = [f'graficos/df_confusion_matrix_test.png']
-    caminhos_graficos20 = [f'graficos/df_confusion_matrix_cv.png']
-    caminhos_graficos21 = [f'graficos/df_decision_tree.png']
-
-    dados_texto = {
-        'colunas_old': df_old.columns.tolist(),
-        'dados_originais_old': df_old.head(5).to_html(classes='table'),
-        'infos_variaveis_old': infos_variaveis_old,
-        'shape_old': df_old.shape,
-        'describe_old': df_old.describe().to_html(classes='table'),
-        'limpeza_old': df_old.isnull().sum(),
-        'limpeza': df.isnull().sum(),
-        'colunas': df.columns.tolist(),
-        'dados_novos': df.head(5).to_html(classes='table'),
-        'infos_variaveis': infos_variaveis,
-        'shape': df.shape,
-        'describe': df.describe().to_html(classes='table'),
-        'limpeza': df.isnull().sum(),
-        'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df_to_dict,
-        'best': best,
-        'train': train,
-        'test': test,
-        'accuracy_test': accuracy_test,
-        'report_test': report_test,
-        'accuracy_test1': accuracy_test1,
-        'report': report
-    }
-
-    # Perform clustering using KMeans
-    kmeans = KMeans(n_clusters=6, random_state=42)
-    cluster_labels = kmeans.fit_predict(df)
-    cluster_analysis_report = cluster_report(df, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
-
-    return render_template('dashboard_um.html', dados_texto=dados_texto,  
-                        caminhos_graficos11=caminhos_graficos11, caminhos_graficos16=caminhos_graficos16, silhouette_scores=silhouette_scores, cluster_analysis_report=cluster_analysis_report, html_data=html_data,  caminhos_graficos=caminhos_graficos, caminhos_graficos1=caminhos_graficos1, caminhos_graficos4=caminhos_graficos4, caminhos_graficos7=caminhos_graficos7 , caminhos_graficos10=caminhos_graficos10,
-                        caminhos_graficos19=caminhos_graficos19, caminhos_graficos20=caminhos_graficos20, caminhos_graficos21=caminhos_graficos21)
-
-@analise.route('/dashboard_dois')
-def dashboard_dois():
+@analise.route('/dashboard_dois_console')
+def dashboard_dois_console():
     df1 = get_dataframe1(csv_filepath1)
 
-    csv_filepath_old1 = os.path.join('..', 'df1.csv')
+    csv_filepath_old1 = os.path.join('df1.csv')
     df1_old = pd.read_csv(csv_filepath_old1, encoding='cp1252', delimiter=';')
 
-    #Data outliers1
-    df1[df1.duplicated(keep='first')]
-    df1.drop_duplicates(keep='first',inplace=True)
+    # Removendo duplicatas
+    df1.drop_duplicates(keep='first', inplace=True)
 
     combinacoes = list(itertools.combinations(campos1, 2))
 
@@ -853,6 +624,7 @@ def dashboard_dois():
     df1.info(buf=buffer_old1)
     infos_variaveis_old1 = buffer_old1.getvalue()
 
+    # Calculando correlações
     correlacoes = {}
     for campo1 in campos1:
         for campo2 in campos1:
@@ -861,319 +633,102 @@ def dashboard_dois():
                 chave = f'{campo1} - {campo2}'
                 correlacoes[chave] = correlacao
 
-   
     # Remove rows with missing values
     df1.dropna(inplace=True)       
-    
+
     scaler = StandardScaler()
     df1_std = scaler.fit_transform(df1)
-    df1_std = pd.DataFrame(data = df1_std,columns = df1.columns)
+    df1_std = pd.DataFrame(data=df1_std, columns=df1.columns)
 
     Soma_distancia_quadratica = []
-    K = range(1,11)
+    K = range(1, 11)
     for k in K:
-     km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
-     km = km.fit(df1_std)
-     Soma_distancia_quadratica.append(km.inertia_)
+        km = KMeans(n_clusters=k, init='k-means++', random_state=42)
+        km = km.fit(df1_std)
+        Soma_distancia_quadratica.append(km.inertia_)
 
+    # Exibindo a soma das distâncias quadráticas no console
+    print("Soma das Distâncias Quadráticas (Método do Cotovelo):")
+    for i, s in enumerate(Soma_distancia_quadratica, 1):
+        print(f"K={i}: {s}")
+
+    # Silhouette scores
     silhouette_scores = []
-    K = range(2, 10)
-    for k in K:
+    for k in range(2, 10):
         kmeans = KMeans(n_clusters=k, random_state=10)
         labels = kmeans.fit_predict(df1_std)
         score = silhouette_score(df1_std, labels)
         silhouette_scores.append(score)
-        print(f'For n_clusters={k}, Silhouette score is {score}')
-     
-    plt.figure(figsize = (10,8))
-    plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
-    plt.xlabel('Number of Clusters')
-    plt.ylabel('Soma_distancia_quadratica')
-    plt.title('Elbow')
-    caminho_arquivo = os.path.join(graficos_dir, 'df1_cotovelo.png')
-    plt.savefig(caminho_arquivo)
+        print(f'Para n_clusters={k}, Silhouette score é {score}')
 
-    kmeans = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
-    kmeans.fit(df1_std)
-    df1_segm_kmeans= df1_std.copy()
-    df1_std['Segment'] = kmeans.labels_
-    df1_segm_analysis = df1_std.groupby(['Segment']).mean()
-    df1_to_dict = df1_segm_analysis.to_dict()
+    # Exibindo os scores no console
+    print("Silhouette Scores:")
+    for i, s in enumerate(silhouette_scores, 2):
+        print(f"K={i}: {s}")
 
-    new_data = kmeans_scatterplot(df1, 'df1', 3)
-    html_data = new_data.head().to_html(classes='table')
+    # Performando o clustering
+    kmeans = KMeans(n_clusters=6, random_state=42)
+    cluster_labels = kmeans.fit_predict(df1_std)
+    cluster_analysis_report = cluster_report(df1, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
 
-    X = new_data.iloc[:,0:16]
-    y = new_data.iloc[:,17]
-    uniformiza = MinMaxScaler()
-    novo_X = uniformiza.fit_transform(X)
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(novo_X,y)
-    best_clf = grid.best_estimator_
-    best = best_clf
-    
-    # Criação de conjuntos de treino e teste
-    X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
-    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
-    test = (X_test.shape, y_test.shape)
+    # Exibindo o relatório de análise de clusters no console
+    print("Relatório de Análise de Clusters:")
+    print(cluster_analysis_report.to_string())
+
+    # Exibindo informações do dataframe original e do processado
+    print("\nInformações do DataFrame Original:")
+    print(df1_old.info())
+    print("\nDescrição do DataFrame Original:")
+    print(df1_old.describe())
+    print(df1_old.head())
+    print("\nInformações do DataFrame Processado:")
+    print(df1.info())
+    print("\nDescrição do DataFrame Processado:")
+    print(df1.describe())
+
+    print("  ")
+    print(df1_old.shape)
+
+    print("  ")
+    print(df1_old.isnull().sum())
+    print("  ")  
+    print(df1_old.dtypes)      
+
+    # Dividindo os dados para treinamento e teste
+    X = df1_std.iloc[:, :-1]
+    y = df1_std.iloc[:, -1]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+
+    # Treinando a árvore de decisão
     tree = DecisionTreeClassifier(criterion='entropy', max_depth=70, min_samples_leaf=5)
-    tree.fit(X_train,y_train)
+    tree.fit(X_train, y_train)
     predictions_test = tree.predict(X_test)
-    accuracy_test = accuracy_score(y_test,predictions_test)*100
-    report_test = classification_report(y_test,predictions_test)
-    
-    #Test
-    cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
-    plt.figure(figsize=(10, 7))
-    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
-    plt.title("Confusion Matrix - Test")
-    plt.savefig(f'static/graficos/df1_confusion_matrix_test.png')  # Salvando o gráfico
-    plt.close()
+    accuracy_test = accuracy_score(y_test, predictions_test) * 100
+    report_test = classification_report(y_test, predictions_test)
 
-    #Cross Validation
-    predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
-    accuracy_test1 = accuracy_score(y,predictions_test)*100
-    
-    predictions = cross_val_predict (tree,novo_X,y,cv=10)
-    cf = confusion_matrix(y,predictions)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
-    plt.figure(figsize=(10, 7))
-    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
-    plt.title("Confusion Matrix - Cross Validation")
-    plt.savefig(f'static/graficos/df1_confusion_matrix_cv.png')  # Salvando o gráfico
-    plt.close()
+    # Exibindo os resultados do teste
+    print("\nAcurácia do Teste:", accuracy_test)
+    print("\nRelatório de Classificação do Teste:\n", report_test)
 
-    report = classification_report(y,predictions)
-    
-    #Gera arvore de decisao
-    plt.figure(figsize=(40, 30))
-    plot_tree(tree, filled=True, fontsize=7)
-    plt.title("Decision Tree")
-    plt.savefig(f'static/graficos/df1_decision_tree.png')  # Salvando o gráfico
-    plt.close()
+    # Matriz de Confusão para Teste
+    cf_test = confusion_matrix(y_test, predictions_test)
+    print("\nMatriz de Confusão do Teste:\n", cf_test)
 
-    dados_texto = {
-        'colunas_old': df1_old.columns.tolist(),
-        'dados_originais_old': df1_old.head(5).to_html(classes='table'),
-        'infos_variaveis_old': infos_variaveis_old1,
-        'shape_old': df1_old.shape,
-        'describe_old': df1_old.describe().to_html(classes='table'),
-        'limpeza_old': df1_old.isnull().sum(),
-        'colunas': df1.columns.tolist(),
-        'dados_originais': df1.head(5).to_html(classes='table'),
-        'infos_variaveis': infos_variaveis,
-        'shape': df1.shape,
-        'describe': df1.describe().to_html(classes='table'),
-        'limpeza': df1.isnull().sum(),
-        'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df1_to_dict,
-        'best': best,
-        'train': train,
-        'test': test,
-        'accuracy_test': accuracy_test,
-        'report_test': report_test,
-        'accuracy_test1': accuracy_test1,
-        'report': report
-    }
+    # Cross Validation
+    predictions_cv = cross_val_predict(tree, X, y, cv=10)
+    accuracy_cv = accuracy_score(y, predictions_cv) * 100
+    report_cv = classification_report(y, predictions_cv)
 
-    caminhos_graficos = [f'graficos/df1_{campo1}.png' for campo1 in campos1]
-    caminhos_graficos2 = [f'graficos/df1_{campo1}_boxplot.png' for campo1 in campos1]
-    caminhos_graficos5 = [f'graficos/df1_pairplot.png']
-    caminhos_graficos8 = [f'graficos/df1_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
-    caminhos_graficos12 = [f'graficos/df1_heatmap.png']
-    caminhos_graficos13 = [f'graficos/df1_pairplot_numerical.png']
-    caminhos_graficos17 = [f'graficos/df1_cotovelo.png']
-    caminhos_graficos22 = [f'graficos/df1_confusion_matrix_test.png']
-    caminhos_graficos23 = [f'graficos/df1_confusion_matrix_cv.png']
-    caminhos_graficos24 = [f'graficos/df1_decision_tree.png']
+    # Exibindo os resultados da validação cruzada
+    print("\nAcurácia da Validação Cruzada:", accuracy_cv)
+    print("\nRelatório de Classificação da Validação Cruzada:\n", report_cv)
 
-   
-    kmeans = KMeans(n_clusters=5, random_state=42)
-    cluster_labels = kmeans.fit_predict(df1)
-    cluster_analysis_report1 = cluster_report(df1, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
+    # Matriz de Confusão para Validação Cruzada
+    cf_cv = confusion_matrix(y, predictions_cv)
+    print("\nMatriz de Confusão da Validação Cruzada:\n", cf_cv)
 
-    return render_template('dashboard_dois.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos2=caminhos_graficos2, caminhos_graficos5=caminhos_graficos5, caminhos_graficos8=caminhos_graficos8, caminhos_graficos12=caminhos_graficos12,
-                           caminhos_graficos13=caminhos_graficos13, caminhos_graficos17=caminhos_graficos17, silhouette_scores=silhouette_scores,  cluster_analysis_report1=cluster_analysis_report1, html_data=html_data, caminhos_graficos22=caminhos_graficos22, caminhos_graficos23=caminhos_graficos23, caminhos_graficos24=caminhos_graficos24)
+    return "Resultados exibidos no console"
 
-@analise.route('/dashboard_tres')
-def dashboard_tres():
-    df2 = get_dataframe2(csv_filepath2)
-
-    csv_filepath_old2 = os.path.join('..', 'df2.csv')
-    df2_old = pd.read_csv(csv_filepath_old2, encoding='cp1252', delimiter=';')
-
-    #Data outliers1
-    df2[df2.duplicated(keep='first')]
-    df2.drop_duplicates(keep='first',inplace=True)
-
-    combinacoes = list(itertools.combinations(campos2, 2))
-
-    # Captura a saída de df.info()
-    buffer = StringIO()
-    df2.info(buf=buffer)
-    infos_variaveis = buffer.getvalue()
-
-    buffer_old2 = StringIO()
-    df2.info(buf=buffer_old2)
-    infos_variaveis_old2 = buffer_old2.getvalue()
-
-    correlacoes = {}
-    for campo1 in campos2:
-        for campo2 in campos2:
-            if campo1 != campo2:
-                correlacao = df2.corr()[campo1][campo2]
-                chave = f'{campo1} - {campo2}'
-                correlacoes[chave] = correlacao
-
-    # Remove rows with missing values
-    df2.dropna(inplace=True)       
-
-    scaler = StandardScaler()
-    df2_std = scaler.fit_transform(df2)
-    df2_std = pd.DataFrame(data = df2_std,columns = df2.columns)
-
-    Soma_distancia_quadratica = []
-    K = range(1,11)
-    for k in K:
-     km = KMeans(n_clusters = k, init = 'k-means++', random_state = 42)
-     km = km.fit(df2_std)
-     Soma_distancia_quadratica.append(km.inertia_)
-
-    silhouette_scores = []
-    K = range(2, 10)
-    for k in K:
-        kmeans = KMeans(n_clusters=k, random_state=10)
-        labels = kmeans.fit_predict(df2_std)
-        score = silhouette_score(df2_std, labels)
-        silhouette_scores.append(score)
-        print(f'For n_clusters={k}, Silhouette score is {score}')
-     
-    plt.figure(figsize = (10,8))
-    plt.plot(range(1, 11), Soma_distancia_quadratica, marker = 'o', linestyle = '-.',color='red')
-    plt.xlabel('Number of Clusters')
-    plt.ylabel('Soma_distancia_quadratica')
-    plt.title('Elbow')
-    caminho_arquivo = os.path.join(graficos_dir, 'df2_cotovelo.png')
-    plt.savefig(caminho_arquivo)
-
-    kmeans = KMeans(n_clusters = 3, init = 'k-means++', random_state = 42)
-    kmeans.fit(df2_std)
-    df2_segm_kmeans= df2_std.copy()
-    df2_std['Segment'] = kmeans.labels_
-    df2_segm_analysis = df2_std.groupby(['Segment']).mean()
-    df2_to_dict = df2_segm_analysis.to_dict()
-    
-    new_data = kmeans_scatterplot(df2, 'df2', 3)
-    html_data = new_data.head().to_html(classes='table')
-
-    X = new_data.iloc[:,0:21]
-    y = new_data.iloc[:,22]
-    uniformiza = MinMaxScaler()
-    novo_X = uniformiza.fit_transform(X)
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(novo_X,y)
-    best_clf = grid.best_estimator_
-    best = best_clf
-    
-    # Criação de conjuntos de treino e teste
-    X_train, X_test, y_train, y_test = train_test_split(novo_X,y,test_size=0.3,random_state=100)
-    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
-    test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=5)
-    tree.fit(X_train,y_train)
-    predictions_test = tree.predict(X_test)
-    accuracy_test = accuracy_score(y_test,predictions_test)*100
-    report_test = classification_report(y_test,predictions_test)
-    
-    #Test
-    cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
-    plt.figure(figsize=(10, 7))
-    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
-    plt.title("Confusion Matrix - Test")
-    plt.savefig(f'static/graficos/df2_confusion_matrix_test.png')  # Salvando o gráfico
-    plt.close()
-
-    #Cross Validation
-    predictions_test = cross_val_predict(tree,novo_X,y,cv=10)
-    accuracy_test1 = accuracy_score(y,predictions_test)*100
-    
-    predictions = cross_val_predict (tree,novo_X,y,cv=10)
-    cf = confusion_matrix(y,predictions)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
-    plt.figure(figsize=(10, 7))
-    sb.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
-    plt.title("Confusion Matrix - Cross Validation")
-    plt.savefig(f'static/graficos/df2_confusion_matrix_cv.png')  # Salvando o gráfico
-    plt.close()
-
-    report = classification_report(y,predictions)
-    
-    #Gera arvore de decisao
-    plt.figure(figsize=(70, 60))
-    plot_tree(tree, filled=True, fontsize=7)
-    plt.title("Decision Tree")
-    plt.savefig(f'static/graficos/df2_decision_tree.png')  # Salvando o gráfico
-    plt.close()
-
-    dados_texto = {
-        'colunas_old': df2_old.columns.tolist(),
-        'dados_originais_old': df2_old.head(5).to_html(classes='table'),
-        'infos_variaveis_old': infos_variaveis_old2,
-        'shape_old': df2_old.shape,
-        'describe_old': df2_old.describe().to_html(classes='table'),
-        'limpeza_old': df2_old.isnull().sum(),
-        'colunas': df2.columns.tolist(),
-        'dados_originais': df2.head(5).to_html(classes='table'),
-        'infos_variaveis': infos_variaveis,
-        'shape': df2.shape,
-        'describe': df2.describe().to_html(classes='table'),
-        'limpeza': df2.isnull().sum(),
-        'correlacoes': correlacoes,
-        'soma_quadratica': Soma_distancia_quadratica,
-        'df_segm_analysis': df2_to_dict,
-        'best': best,
-        'train': train,
-        'test': test,
-        'accuracy_test': accuracy_test,
-        'report_test': report_test,
-        'accuracy_test1': accuracy_test1,
-        'report': report
-    }
-       
-    caminhos_graficos = [f'graficos/df2_{campo2}.png' for campo2 in campos2]
-    caminhos_graficos3 = [f'graficos/df2_{campo2}_boxplot.png' for campo2 in campos2]
-    caminhos_graficos6 = [f'graficos/df2_pairplot.png']
-    caminhos_graficos9 = [f'graficos/df2_{campo1}_{campo2}_scatterplot.png' for campo1, campo2 in combinacoes]
-    caminhos_graficos14 = [f'graficos/df2_heatmap.png']
-    caminhos_graficos15 = [f'graficos/df2_pairplot_numerical.png']
-    caminhos_graficos18 = [f'graficos/df2_cotovelo.png']
-    caminhos_graficos25 = [f'graficos/df2_confusion_matrix_test.png']
-    caminhos_graficos26 = [f'graficos/df2_confusion_matrix_cv.png']
-    caminhos_graficos27 = [f'graficos/df2_decision_tree.png']
-
-    kmeans = KMeans(n_clusters=3, random_state=42)
-    cluster_labels = kmeans.fit_predict(df2)
-    cluster_analysis_report2 = cluster_report(df2, cluster_labels, min_samples_leaf=50, pruning_level=0.01)
-
-    return render_template('dashboard_tres.html', dados_texto=dados_texto,  caminhos_graficos=caminhos_graficos, caminhos_graficos3=caminhos_graficos3, caminhos_graficos6=caminhos_graficos6, caminhos_graficos9=caminhos_graficos9, caminhos_graficos14=caminhos_graficos14,
-                           caminhos_graficos15=caminhos_graficos15,  caminhos_graficos18=caminhos_graficos18, silhouette_scores=silhouette_scores, cluster_analysis_report2=cluster_analysis_report2, html_data=html_data, caminhos_graficos25=caminhos_graficos25, caminhos_graficos26=caminhos_graficos26, caminhos_graficos27=caminhos_graficos27)
-
-# Rota para exibir um gráfico específico
-@analise.route('/grafico/<campo>')
-def mostrar_grafico(campo):
-    caminho_arquivo = os.path.join(graficos_dir, f'{campo}.png')
-    return send_file(caminho_arquivo, mimetype='image/png')
 
 if __name__ == '__main__':
     analise.run(debug=True)
