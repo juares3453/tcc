@@ -40,17 +40,10 @@ analise = Flask(__name__)
 graficos_dir = 'static/graficos'
 os.makedirs(graficos_dir, exist_ok=True)
 
-# Lista de campos
-campos = ['Dia', 'Mes', 'Ano', 'Filial', 'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total',
-          'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 
-          'peso_entregue', 'frete_total', 'frete_entregue']
 
 campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
        'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
        'Lucro', '%Lucro']
-
-campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
- 'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
 
 csv_filepath = os.path.join('df.csv')
 csv_filepath1 = os.path.join('df1.csv')
@@ -62,14 +55,6 @@ def remover_valores_negativos(df):
             df[coluna] = df[coluna].apply(lambda x: x if x >= 0 else np.nan)
     return df
 
-def get_dataframe(csv_filepath):
-    df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
-    df_new = df.drop(['conf_carregamento', 'conf_entrega'], axis=1)
-    df_new = remover_valores_negativos(df_new)
-    df_new.dropna(inplace=True)
-    df_new['Filial'] = pd.factorize(df_new['Filial'])[0]
-    return df_new
-
 def get_dataframe1(csv_filepath1):
     df1 = pd.read_csv(csv_filepath1, encoding='cp1252', delimiter=';')
     df1_new = df1.drop(['DsModelo', 'DsAnoFabricacao'], axis=1)
@@ -79,18 +64,6 @@ def get_dataframe1(csv_filepath1):
     df1_new['VlCusto'] = df1_new['VlCusto'].str.replace(',', '.').astype(float)
     df1_new['Lucro'] = df1_new['Lucro'].str.replace(',', '.').astype(float)
     return df1_new
-
-def get_dataframe2(csv_filepath2):
-    df2 = pd.read_csv(csv_filepath2, encoding='cp1252', delimiter=';')
-    df2 = remover_valores_negativos(df2)
-    df2.dropna(inplace=True)
-    df2['DsLocal'] = pd.factorize(df2['DsLocal'])[0]
-    df2['tp_ocor'] = pd.factorize(df2['tp_ocor'])[0]
-    df2['Situacao'] = pd.factorize(df2['Situacao'])[0]
-    df2['dsocorrencia'] = pd.factorize(df2['dsocorrencia'])[0]
-    df2['CLIENTE'] = pd.factorize(df2['CLIENTE'])[0]
-    df2['VlCusto'] = df2['VlCusto'].str.replace(',', '.').astype(float)
-    return df2
 
 # Função para gerar e salvar gráficos
 def gerar_e_salvar_graficos(df, campos, nome_prefixo):
