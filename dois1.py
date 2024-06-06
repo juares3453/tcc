@@ -45,6 +45,12 @@ def gerar_graficos():
     df1['Mes'] = df1['Mes'].astype(int)
     df1['Ano'] = df1['Ano'].astype(int)
 
+    # Unificação de colunas de data
+    df1['data'] = pd.to_datetime(df1[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
+
+    # Remoção de Colunas Desnecessárias
+    df1 = df1.drop(columns=['Ano', 'Mes', 'Dia', 'data']) 
+
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
     df1['DsTpVeiculo'] = label_encoder.fit_transform(df1['DsTpVeiculo'])
@@ -61,14 +67,6 @@ def gerar_graficos():
     Q3 = df1[['km_rodado', 'VlCusto', 'FreteEx', 'Lucro']].quantile(0.75)
     IQR = Q3 - Q1
     df1 = df1[~((df1[['km_rodado', 'VlCusto', 'FreteEx', 'Lucro']] < (Q1 - 1.5 * IQR)) | (df1[['km_rodado', 'VlCusto', 'FreteEx', 'Lucro']] > (Q3 + 1.5 * IQR))).any(axis=1)]
-
-    # Engenharia de Variáveis
-    # Unificação de colunas de data
-    df1['data'] = pd.to_datetime(df1[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
-
-    # Remoção de Colunas Desnecessárias
-    # Identificar e remover colunas desnecessárias (por exemplo, se 'Dia', 'Mes', 'Ano' não forem necessárias após criar 'data')
-    df1 = df1.drop(columns=['Ano', 'Mes', 'Dia', 'data']) 
 
     # Verificação de Duplicatas
     df1.drop_duplicates(inplace=True)
