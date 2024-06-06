@@ -42,7 +42,7 @@ def dashboard_um_console():
     df['data'] = pd.to_datetime(df[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
 
     # Remoção de Colunas Desnecessárias
-    df = df.drop(columns=['Ano', 'Mes', 'Dia', 'data'])
+    df = df.drop(columns=['Ano', 'Mes', 'Dia'])
 
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
@@ -78,6 +78,14 @@ def dashboard_um_console():
     print(" ")
     print("Primeiras linhas do DataFrame:")
     print(df.head())
+
+    primeiro_dia = df['data'].min().strftime("%d %b %Y") 
+    ultimo_dia = df['data'].max().strftime("%d %b %Y") 
+    total_dias = df['data'].max() - df['data'].min()
+
+    print(f"Primeira registro do caso 1: {primeiro_dia}")
+    print(f"Último registro do caso 1: {ultimo_dia}")
+    print(f"Total de dias do caso 1: {total_dias}")
 
     return "RESULTADO"
 

@@ -105,6 +105,16 @@ def gerar_graficos():
     print("Primeiras linhas do DataFrame:")
     print(df2.head())
 
+    primeiro_dia = df2['data'].min().strftime("%d %b %Y") 
+    ultimo_dia = df2['data'].max().strftime("%d %b %Y") 
+    total_dias = df2['data'].max() - df2['data'].min()
+
+    print(f"Primeira registro do caso 1: {primeiro_dia}")
+    print(f"Último registro do caso 1: {ultimo_dia}")
+    print(f"Total de dias do caso 1: {total_dias}")
+
+    
+
     return "Processamento concluído e informações exibidas no console."
 
 if __name__ == '__main__':

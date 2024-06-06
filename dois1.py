@@ -49,7 +49,7 @@ def gerar_graficos():
     df1['data'] = pd.to_datetime(df1[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
 
     # Remoção de Colunas Desnecessárias
-    df1 = df1.drop(columns=['Ano', 'Mes', 'Dia', 'data']) 
+    df1 = df1.drop(columns=['Ano', 'Mes', 'Dia']) 
 
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
@@ -83,6 +83,14 @@ def gerar_graficos():
     print(" ")
     print("Primeiras linhas do DataFrame:")
     print(df1.head())
+
+    primeiro_dia = df1['data'].min().strftime("%d %b %Y") 
+    ultimo_dia = df1['data'].max().strftime("%d %b %Y") 
+    total_dias = df1['data'].max() - df1['data'].min()
+
+    print(f"Primeira registro do caso 1: {primeiro_dia}")
+    print(f"Último registro do caso 1: {ultimo_dia}")
+    print(f"Total de dias do caso 1: {total_dias}")
 
     return "Processamento concluído e informações exibidas no console."
 
