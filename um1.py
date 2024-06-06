@@ -38,25 +38,30 @@ def dashboard_um_console():
     df['Mes'] = df['Mes'].astype(int)
     df['Ano'] = df['Ano'].astype(int)
 
+    # Unificação de colunas de data
+    df['data'] = pd.to_datetime(df[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
+
+    # Remoção de Colunas Desnecessárias
+    df = df.drop(columns=['Ano', 'Mes', 'Dia', 'data'])
+
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
     df['Filial'] = label_encoder.fit_transform(df['Filial'])
 
     # Normalização e Padronização
     scaler = MinMaxScaler()
-    df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue', 'Filial', 'conf_carregamento', 'conf_entrega', 'auxiliares', 'capacidade',  'entregas_total', 'entregas_realizadas', 'volumes_total',  'volumes_entregues', 'peso_total', 'peso_entregue']] = scaler.fit_transform(df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue', 'Filial', 'conf_carregamento', 'conf_entrega',  'auxiliares', 'capacidade', 'entregas_total', 'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 'peso_entregue']])
+    df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue', 'Filial', 'conf_carregamento', 
+        'conf_entrega', 'auxiliares', 'capacidade',  'entregas_total', 'entregas_realizadas', 'volumes_total',  
+        'volumes_entregues', 'peso_total', 'peso_entregue']] = scaler.fit_transform(df[['km_rodado', 'tempo_total', 'frete_total', 
+        'frete_entregue', 'Filial', 'conf_carregamento', 'conf_entrega',  'auxiliares', 'capacidade', 
+        'entregas_total', 'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 'peso_entregue']])
 
     # Tratamento de Outliers
     Q1 = df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']].quantile(0.25)
     Q3 = df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']].quantile(0.75)
     IQR = Q3 - Q1
-    df = df[~((df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']] < (Q1 - 1.5 * IQR)) | (df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']] > (Q3 + 1.5 * IQR))).any(axis=1)]
-
-    # Unificação de colunas de data
-    df['data'] = pd.to_datetime(df[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
-
-    # Remoção de Colunas Desnecessárias
-    df = df.drop(columns=['Ano', 'Mes', 'Dia', 'data'])
+    df = df[~((df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']] < (Q1 - 1.5 * IQR)) 
+    | (df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']] > (Q3 + 1.5 * IQR))).any(axis=1)]
 
     # Verificação de Duplicatas
     df.drop_duplicates(inplace=True)
