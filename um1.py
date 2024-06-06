@@ -1,26 +1,9 @@
 from flask import Flask, render_template, send_file
 import matplotlib as mpl
 import os
-from io import StringIO
-import itertools
-from tqdm import tqdm
-from time import time
 import pandas as pd
-import seaborn as sb
-from sklearn.preprocessing import scale
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import numpy as np
-from sklearn.metrics import silhouette_samples, silhouette_score
-from IPython.display import HTML, display
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.tree import DecisionTreeClassifier, export_graphviz, plot_tree, _tree
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.impute import SimpleImputer
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -45,6 +28,38 @@ def get_dataframe(csv_filepath):
 def dashboard_um_console():
     df = get_dataframe(csv_filepath)
     df_old = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
+
+    # Tratamento de Valores Nulos
+    imputer = SimpleImputer(strategy='mean')
+    df[['frete_total', 'frete_entregue']] = imputer.fit_transform(df[['frete_total', 'frete_entregue']])
+
+    # Conversão de Tipos de Dados
+    df['Dia'] = df['Dia'].astype(int)
+    df['Mes'] = df['Mes'].astype(int)
+    df['Ano'] = df['Ano'].astype(int)
+
+    # Codificação de Variáveis Categóricas
+    label_encoder = LabelEncoder()
+    df['Filial'] = label_encoder.fit_transform(df['Filial'])
+
+    # Normalização e Padronização
+    scaler = MinMaxScaler()
+    df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue', 'Filial', 'conf_carregamento', 'conf_entrega', 'auxiliares', 'capacidade',  'entregas_total', 'entregas_realizadas', 'volumes_total',  'volumes_entregues', 'peso_total', 'peso_entregue']] = scaler.fit_transform(df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue', 'Filial', 'conf_carregamento', 'conf_entrega',  'auxiliares', 'capacidade', 'entregas_total', 'entregas_realizadas', 'volumes_total', 'volumes_entregues', 'peso_total', 'peso_entregue']])
+
+    # Tratamento de Outliers
+    Q1 = df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']].quantile(0.25)
+    Q3 = df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']].quantile(0.75)
+    IQR = Q3 - Q1
+    df = df[~((df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']] < (Q1 - 1.5 * IQR)) | (df[['km_rodado', 'tempo_total', 'frete_total', 'frete_entregue']] > (Q3 + 1.5 * IQR))).any(axis=1)]
+
+    # Unificação de colunas de data
+    df['data'] = pd.to_datetime(df[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
+
+    # Remoção de Colunas Desnecessárias
+    df = df.drop(columns=['Ano', 'Mes', 'Dia', 'data'])
+
+    # Verificação de Duplicatas
+    df.drop_duplicates(inplace=True)
 
     # Informações após o tratamento
     print("Shape do DataFrame:")
