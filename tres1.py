@@ -6,7 +6,7 @@ import itertools
 from tqdm import tqdm
 import pandas as pd
 import seaborn as sb
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, silhouette_samples
@@ -90,8 +90,8 @@ def gerar_graficos():
     df.drop_duplicates(inplace=True)
 
     # Normalização dos dados
-    scaler = StandardScaler()
-    colunas_para_normalizar = ['diasresolucao', 'diasemissao', 'NrBo', 'dsocorrencia', 'CLIENTE']
+    scaler = MinMaxScaler()
+    colunas_para_normalizar = ['diasresolucao', 'diasemissao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'VlCusto', 'DsLocal', 'Resp']
     df[colunas_para_normalizar] = scaler.fit_transform(df[colunas_para_normalizar])
 
     # Análise e tratamento de outliers
