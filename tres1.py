@@ -29,11 +29,9 @@ def gerar_graficos():
     # Substituição de vírgulas por pontos na coluna 'VlCusto'
     df2['VlCusto'] = df2['VlCusto'].str.replace(',', '.')
 
-    # Conversão de tipos de dados
-    df2['VlCusto'] = pd.to_numeric(df2['VlCusto'], errors='coerce')
-
     # Conversão de colunas numéricas para tipos numéricos, tratando erros
-    colunas_numericas = ['dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao', 'diasresolucao', 'NrBo', 'VlCusto']
+    colunas_numericas = ['dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 
+                         'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao', 'diasresolucao', 'NrBo', 'VlCusto']
     for coluna in colunas_numericas:
         df2[coluna] = pd.to_numeric(df2[coluna], errors='coerce')
 
@@ -41,7 +39,6 @@ def gerar_graficos():
     imputer_num = SimpleImputer(strategy='mean')
     imputer_cat = SimpleImputer(strategy='most_frequent')
     df2[colunas_numericas] = imputer_num.fit_transform(df2[colunas_numericas])
-
     colunas_categoricas = ['Resp', 'CLIENTE', 'DsLocal', 'tp_ocor', 'Situacao', 'dsocorrencia']
     df2[colunas_categoricas] = imputer_cat.fit_transform(df2[colunas_categoricas])
 
@@ -71,7 +68,8 @@ def gerar_graficos():
     df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
 
     # Exclusão de colunas de dia, mês e ano originais
-    df2 = df2.drop(columns=[ 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'data_cte', 'data_emissao_bo', 'data_ocor', 'data_baixa', 'dtcte', 'mescte', 'anocte'])
+    df2 = df2.drop(columns=[ 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 
+                            'dtbaixa', 'mesbaixa', 'anobaixa', 'data_cte', 'data_ocor', 'data_baixa', 'dtcte', 'mescte', 'anocte'])
 
     # Remoção de duplicatas
     df2.drop_duplicates(inplace=True)
@@ -99,6 +97,14 @@ def gerar_graficos():
     print(" ")
     print("Primeiras linhas do DataFrame:")
     print(df2.head())
+    
+    primeiro_dia = df2['data_emissao_bo'].min().strftime("%d %b %Y") 
+    ultimo_dia = df2['data_emissao_bo'].max().strftime("%d %b %Y") 
+    total_dias = df2['data_emissao_bo'].max() - df2['data_emissao_bo'].min()
+
+    print(f"Primeira registro do caso 3: {primeiro_dia}")
+    print(f"Último registro do caso 3: {ultimo_dia}")
+    print(f"Total de dias do caso 3: {total_dias}")
 
     return "Processamento concluído e informações exibidas no console."
 
