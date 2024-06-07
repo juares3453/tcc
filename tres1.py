@@ -1,23 +1,12 @@
 from flask import Flask
 import matplotlib as mpl
 import os
-from io import StringIO
-import itertools
-from tqdm import tqdm
-import seaborn as sb
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, silhouette_samples
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import numpy as np
-from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.model_selection import train_test_split, cross_val_predict
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.impute import SimpleImputer
-
 import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.impute import SimpleImputer
+import matplotlib.pyplot as plt
+
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
 analise = Flask(__name__)
@@ -26,20 +15,15 @@ analise = Flask(__name__)
 graficos_dir = 'static/graficos'
 os.makedirs(graficos_dir, exist_ok=True)
 
-# Lista de campos
-campos2 = ['Resp', 'CLIENTE', 'dtcte','mescte','anocte','dtemissao','mesemissao','anoemissao','dtocor','mesocor','anoocor','dtbaixa','mesbaixa',
- 'anobaixa','diasemissao','diasresolucao','DsLocal', 'tp_ocor', 'Situacao','NrBo','dsocorrencia','VlCusto']
-
 csv_filepath2 = os.path.join('df2.csv')
 
 # Função para carregar e preparar os dados
 def get_dataframe(filepath):
-    df2 = pd.read_csv(filepath, encoding='cp1252', delimiter=';')
-    return df2
+    df = pd.read_csv(filepath, encoding='cp1252', delimiter=';')
+    return df
 
 @analise.route('/gerar_graficos')
 def gerar_graficos():
-    csv_filepath2 = os.path.join('df2.csv')
     df2 = get_dataframe(csv_filepath2)
 
     # Substituição de vírgulas por pontos na coluna 'VlCusto'
@@ -48,42 +32,53 @@ def gerar_graficos():
     # Conversão de tipos de dados
     df2['VlCusto'] = pd.to_numeric(df2['VlCusto'], errors='coerce')
 
-    # Tratamento de datas - preenchendo valores ausentes temporariamente com valores válidos
-    df2[['dtbaixa', 'mesbaixa', 'anobaixa']] = df2[['dtbaixa', 'mesbaixa', 'anobaixa']].fillna(0)
+    # Conversão de colunas numéricas para tipos numéricos, tratando erros
+    colunas_numericas = ['dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao', 'diasresolucao', 'NrBo', 'VlCusto']
+    for coluna in colunas_numericas:
+        df2[coluna] = pd.to_numeric(df2[coluna], errors='coerce')
 
-    # Conversão de colunas para inteiros
-    df2[['dtbaixa', 'mesbaixa', 'anobaixa']] = df2[['dtbaixa', 'mesbaixa', 'anobaixa']].astype(int)
+    # Tratamento de Valores Nulos
+    imputer_num = SimpleImputer(strategy='mean')
+    imputer_cat = SimpleImputer(strategy='most_frequent')
+    df2[colunas_numericas] = imputer_num.fit_transform(df2[colunas_numericas])
 
-    # Codificação de variáveis categóricas
+    colunas_categoricas = ['Resp', 'CLIENTE', 'DsLocal', 'tp_ocor', 'Situacao', 'dsocorrencia']
+    df2[colunas_categoricas] = imputer_cat.fit_transform(df2[colunas_categoricas])
+
+    # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
-    df2['tp_ocor'] = label_encoder.fit_transform(df2['tp_ocor'])
-    df2['Situacao'] = label_encoder.fit_transform(df2['Situacao'])
-    df2['dsocorrencia'] = label_encoder.fit_transform(df2['dsocorrencia'])
-    df2['DsLocal'] = label_encoder.fit_transform(df2['DsLocal'])
-    df2['CLIENTE'] = label_encoder.fit_transform(df2['CLIENTE'])
+    for coluna in colunas_categoricas:
+        df2[coluna] = label_encoder.fit_transform(df2[coluna].astype(str))
 
-     # Combinação de colunas de dia, mês e ano em colunas de datas completas
-    df2['data_cte'] = pd.to_datetime(df2[['anocte', 'mescte', 'dtcte']].astype(str).agg('-'.join, axis=1), errors='coerce')
-    df2['data_emissao_bo'] = pd.to_datetime(df2[['anoemissao', 'mesemissao', 'dtemissao']].astype(str).agg('-'.join, axis=1), errors='coerce')
-    df2['data_ocor'] = pd.to_datetime(df2[['anoocor', 'mesocor', 'dtocor']].astype(str).agg('-'.join, axis=1), errors='coerce')
-    df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), errors='coerce')
+     # Conversão de Tipos de Dados
+    df2['anocte'] = df2['anocte'].astype(int)
+    df2['mescte'] = df2['mescte'].astype(int)
+    df2['dtcte'] = df2['dtcte'].astype(int)
+    df2['anoemissao'] = df2['anoemissao'].astype(int)
+    df2['mesemissao'] = df2['mesemissao'].astype(int)
+    df2['dtemissao'] = df2['dtemissao'].astype(int)
+    df2['anoocor'] = df2['anoocor'].astype(int)
+    df2['mesocor'] = df2['mesocor'].astype(int)
+    df2['dtocor'] = df2['dtocor'].astype(int)
+    df2['anobaixa'] = df2['anobaixa'].astype(int)
+    df2['mesbaixa'] = df2['mesbaixa'].astype(int)
+    df2['dtbaixa'] = df2['dtbaixa'].astype(int)
 
-    # Substituição de NaT por uma data padrão
-    df2['data_baixa'].fillna(pd.Timestamp('1900-01-01'), inplace=True)
-    
-    # Exclusão de colunas de dia, mês e ano originais, se necessário
-    df2 = df2.drop(columns=['dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'data_cte', 'data_emissao_bo', 'data_ocor', 'data_baixa'])
+    # Combinação de colunas de datas
+    df2['data_cte'] = pd.to_datetime(df2[['anocte', 'mescte', 'dtcte']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    df2['data_emissao_bo'] = pd.to_datetime(df2[['anoemissao', 'mesemissao', 'dtemissao']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    df2['data_ocor'] = pd.to_datetime(df2[['anoocor', 'mesocor', 'dtocor']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
 
-    # Tratamento de valores nulos
-    imputer = SimpleImputer(strategy='mean')
-    df2[['diasresolucao', 'DsLocal', 'diasemissao']] = imputer.fit_transform(df2[['diasresolucao', 'DsLocal', 'diasemissao']])
+    # Exclusão de colunas de dia, mês e ano originais
+    df2 = df2.drop(columns=[ 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'data_cte', 'data_emissao_bo', 'data_ocor', 'data_baixa', 'dtcte', 'mescte', 'anocte'])
 
     # Remoção de duplicatas
     df2.drop_duplicates(inplace=True)
 
     # Normalização dos dados
     scaler = MinMaxScaler()
-    colunas_para_normalizar = ['diasresolucao', 'diasemissao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'VlCusto', 'DsLocal', 'Resp']
+    colunas_para_normalizar = ['diasresolucao', 'diasemissao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'DsLocal', 'tp_ocor', 'VlCusto', 'Situacao']
     df2[colunas_para_normalizar] = scaler.fit_transform(df2[colunas_para_normalizar])
 
     # Análise e tratamento de outliers
@@ -104,16 +99,6 @@ def gerar_graficos():
     print(" ")
     print("Primeiras linhas do DataFrame:")
     print(df2.head())
-
-    primeiro_dia = df2['data'].min().strftime("%d %b %Y") 
-    ultimo_dia = df2['data'].max().strftime("%d %b %Y") 
-    total_dias = df2['data'].max() - df2['data'].min()
-
-    print(f"Primeira registro do caso 1: {primeiro_dia}")
-    print(f"Último registro do caso 1: {ultimo_dia}")
-    print(f"Total de dias do caso 1: {total_dias}")
-
-    
 
     return "Processamento concluído e informações exibidas no console."
 

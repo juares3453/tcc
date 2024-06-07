@@ -88,9 +88,9 @@ def gerar_graficos():
     ultimo_dia = df1['data'].max().strftime("%d %b %Y") 
     total_dias = df1['data'].max() - df1['data'].min()
 
-    print(f"Primeira registro do caso 1: {primeiro_dia}")
-    print(f"Último registro do caso 1: {ultimo_dia}")
-    print(f"Total de dias do caso 1: {total_dias}")
+    print(f"Primeira registro do caso 2: {primeiro_dia}")
+    print(f"Último registro do caso 2: {ultimo_dia}")
+    print(f"Total de dias do caso 2: {total_dias}")
 
     return "Processamento concluído e informações exibidas no console."
 

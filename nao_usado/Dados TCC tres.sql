@@ -39,8 +39,6 @@ LEFT JOIN CCETPOCO D (NOLOCK) ON A.CDOCORRENCIA = D.CDOCORRENCIA
 Left Join CCETPLOC K (NOLOCK) ON A.CdLocal = K.CdLocal
 WHERE ISNULL(G.INCONHECIMENTO,0)=0 
 And A.CdOcorrencia <> '12'
-and A.DtEmissao >= '20230101'
-and A.DtEmissao <= '20231231'
 AND L.VlCusto > 0
 --and A.NrBo = 9733
 --and A.CdEmpresa = 4
