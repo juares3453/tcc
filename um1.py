@@ -4,6 +4,8 @@ import os
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.impute import SimpleImputer
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -87,6 +89,9 @@ def dashboard_um_console():
     print(f"Último registro do caso 1: {ultimo_dia}")
     print(f"Total de dias do caso 1: {total_dias}")
 
+    print(df.columns)
+
+    
     return "RESULTADO"
 
 if __name__ == '__main__':
