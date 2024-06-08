@@ -4,14 +4,12 @@ import os
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
 analise = Flask(__name__)
-
-# Diretório para salvar os gráficos
-graficos_dir = 'static/graficos'
-os.makedirs(graficos_dir, exist_ok=True)
 
 campos1 = ['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
        'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
@@ -91,6 +89,85 @@ def gerar_graficos():
     print(f"Primeira registro do caso 2: {primeiro_dia}")
     print(f"Último registro do caso 2: {ultimo_dia}")
     print(f"Total de dias do caso 2: {total_dias}")
+
+    # Visualizações
+    plt.figure(figsize=(10, 6))
+    sns.histplot(df1['VlCusto'].dropna(), bins=50, kde=True)
+    plt.title('Distribuição de VlCusto')
+    plt.xlabel('VlCusto')
+    plt.ylabel('Frequência')
+    plt.savefig('static/graficos/new/dois/vlcusto_dois1.png') 
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    sns.histplot(df1['Lucro'].dropna(), bins=50, kde=True)
+    plt.title('Distribuição de Lucro')
+    plt.xlabel('Lucro')
+    plt.ylabel('Frequência')
+    plt.savefig('static/graficos/new/dois/lucro_dois1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    sns.boxplot(data=df1, x='DsTpVeiculo', y='VlCusto')
+    plt.title('Dispersão de VlCusto por Tipo de Veículo')
+    plt.xlabel('Tipo de Veículo')
+    plt.ylabel('VlCusto')
+    plt.savefig('static/graficos/new/dois/vlcusto_tpveiculo_dois1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    sns.boxplot(data=df1, x='DsTpVeiculo', y='Lucro')
+    plt.title('Dispersão de Lucro por Tipo de Veículo')
+    plt.xlabel('Tipo de Veículo')
+    plt.ylabel('Lucro')
+    plt.savefig('static/graficos/new/dois/dstpveiculo_lucro_dois1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    df1['mes_ano'] = df1['data'].dt.to_period('M')
+    ocorrencias_por_mes = df1.groupby('mes_ano').size()
+    ocorrencias_por_mes.plot(kind='line')
+    plt.title('Número de Ocorrências ao Longo do Tempo')
+    plt.xlabel('Mês/Ano')
+    plt.ylabel('Número de Ocorrências')
+    plt.xticks(rotation=45)
+    plt.savefig('static/graficos/new/dois/entregas_dois1.png') 
+    plt.close()
+
+    # Remoção de Colunas Desnecessárias
+    df1 = df1.drop(columns=['mes_ano'])
+
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(df1.corr(), annot=True, cmap='coolwarm', vmin=-1, vmax=1)
+    plt.title('Heatmap de Correlações')
+    plt.savefig('static/graficos/new/dois/corr_dois1.png') 
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=df1, x='km_rodado', y='VlCusto')
+    plt.title('Relação entre Quilometragem Rodada e VlCusto')
+    plt.xlabel('Quilometragem Rodada')
+    plt.ylabel('VlCusto')
+    plt.savefig('static/graficos/new/dois/kmrodado_custo_dois1.png') 
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    sns.countplot(data=df1, x='DsTpVeiculo')
+    plt.title('Distribuição de Tipos de Veículo')
+    plt.xlabel('Tipo de Veículo')
+    plt.ylabel('Frequência')
+    plt.savefig('static/graficos/new/dois/tpveiculo_dois1.png') 
+    plt.close()
+
+    # Scatter plot para visualizar concentração
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=df1, x='km_rodado', y='VlCusto', hue='DsTpVeiculo', palette='Set1')
+    plt.title('Relação entre Quilometragem Rodada e VlCusto por Tipo de Veículo')
+    plt.xlabel('Quilometragem Rodada')
+    plt.ylabel('VlCusto')
+    plt.legend(title='Tipo de Veículo')
+    plt.savefig('static/graficos/new/dois/tpveiculo_km_vlcusto_dois1.png') 
+    plt.close()
 
     return "Processamento concluído e informações exibidas no console."
 

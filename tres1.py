@@ -6,16 +6,11 @@ import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 from sklearn.impute import SimpleImputer
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
 import seaborn as sns
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
 analise = Flask(__name__)
-
-# Diretório para salvar os gráficos
-graficos_dir = 'static/graficos'
-os.makedirs(graficos_dir, exist_ok=True)
 
 csv_filepath2 = os.path.join('df2.csv')
 
@@ -70,7 +65,7 @@ def gerar_graficos():
     df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
 
     # Exclusão de colunas de dia, mês e ano originais
-    df2 = df2.drop(columns=[ 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 
+    df2 = df2.drop(columns=[ 'dtemissao', 'dtocor', 'mesocor', 'anoocor', 
                             'dtbaixa', 'mesbaixa', 'anobaixa', 'dtcte', 'mescte', 'anocte'])
 
     # Remoção de duplicatas
@@ -112,7 +107,7 @@ def gerar_graficos():
     plt.figure(figsize=(12, 8))
     df2[['VlCusto', 'NrBo', 'diasresolucao', 'diasemissao']].hist(bins=20, figsize=(12, 8))
     plt.tight_layout()
-    plt.savefig('static/graficos/new/histogramas_tres1.png')  # Salvar o histograma como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/histogramas_tres1.png')  # Salvar o histograma como um arquivo de imagem
     plt.show()
 
     # Histograma de VlCusto 
@@ -121,7 +116,7 @@ def gerar_graficos():
     plt.title('Distribuição de VlCusto') 
     plt.xlabel('VlCusto') 
     plt.ylabel('Frequência') 
-    plt.savefig('static/graficos/new/histograma_vlcusto_tres1.png')  # Salvar o histograma como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/histograma_vlcusto_tres1.png')  # Salvar o histograma como um arquivo de imagem
     plt.show()
 
     # Gráfico de barras de DsLocal
@@ -131,7 +126,7 @@ def gerar_graficos():
     plt.xlabel('Local')
     plt.ylabel('Contagem')
     plt.xticks(rotation=90)
-    plt.savefig('static/graficos/new/contagem_DsLocal_tres1.png')  # Salvar o histograma como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/contagem_DsLocal_tres1.png')  # Salvar o histograma como um arquivo de imagem
     plt.show()
 
     # Boxplot de VlCusto por tp_ocor
@@ -140,13 +135,14 @@ def gerar_graficos():
     plt.title('Dispersão de VlCusto por Tipo de Ocorrência')
     plt.xlabel('Tipo de Ocorrência')
     plt.ylabel('VlCusto')
+    plt.savefig('static/graficos/new/tres/ocor_vlcusto_tres1.png')
     plt.show()
    
     # Boxplot
     plt.figure(figsize=(12, 6))
     sns.boxplot(data=df2[['VlCusto', 'NrBo']])
     plt.title('Boxplot de VlCusto e NrBo')
-    plt.savefig('static/graficos/new/boxplot_tres1.png')  # Salvar o boxplot como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/boxplot_tres1.png')  # Salvar o boxplot como um arquivo de imagem
     plt.show()
 
     # Boxplot de VlCusto por tp_ocor
@@ -155,7 +151,7 @@ def gerar_graficos():
     plt.title('Dispersão de VlCusto por Tipo de Ocorrência')
     plt.xlabel('Tipo de Ocorrência')
     plt.ylabel('VlCusto')
-    plt.savefig('static/graficos/new/boxplot_vlcusto_tpocor_tres1.png')  # Salvar o boxplot como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/boxplot_vlcusto_tpocor_tres1.png')  # Salvar o boxplot como um arquivo de imagem
     plt.show()
 
     # Gráfico de linha de número de ocorrências ao longo do tempo
@@ -168,27 +164,48 @@ def gerar_graficos():
     plt.xlabel('Mês/Ano')
     plt.ylabel('Número de Ocorrências')
     plt.xticks(rotation=45)
-    plt.savefig('static/graficos/new/ocorrencias_mes_tres1.png')  # Salvar o boxplot como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/ocorrencias_mes_tres1.png')  # Salvar o boxplot como um arquivo de imagem
     plt.show()
 
-    # # Heatmap de Correlação
-    # plt.figure(figsize=(12, 8))
-    # correlation_matrix = df2.corr()
-    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-    # plt.title('Heatmap de Correlação')
-    # plt.savefig('static/graficos/new/heatmap_correlacao_tres1.png')  # Salvar o heatmap como um arquivo de imagem
-    # plt.show()
+    # Boxplot de VlCusto por mesemissao
+    plt.figure(figsize=(14, 8))
+    sns.boxplot(data=df2, x='mesemissao', y='VlCusto')
+    plt.title('Dispersão de VlCusto por Mês de Emissão')
+    plt.xlabel('Mês de Emissão')
+    plt.ylabel('VlCusto')
+    plt.savefig('static/graficos/new/tres/vlcusto_mes_tres1.png')  # Salvar o boxplot como um arquivo de imagem
+    plt.show()
+
+    # Boxplot de VlCusto por anoemissao
+    plt.figure(figsize=(14, 8))
+    sns.boxplot(data=df2, x='anoemissao', y='VlCusto')
+    plt.title('Dispersão de VlCusto por Ano de Emissão')
+    plt.xlabel('Ano de Emissão')
+    plt.ylabel('VlCusto')
+    plt.savefig('static/graficos/new/tres/vlcusto_ano_tres1.png')  # Salvar o boxplot como um arquivo de imagem
+    plt.show()
+
+    # Remoção de Colunas Desnecessárias
+    df2 = df2.drop(columns=['mes_ano'])
+
+    # Heatmap de Correlação
+    plt.figure(figsize=(12, 8))
+    correlation_matrix = df2.corr()
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+    plt.title('Heatmap de Correlação')
+    plt.savefig('static/graficos/new/tres/heatmap_correlacao_tres1.png')  # Salvar o heatmap como um arquivo de imagem
+    plt.show()
 
     plt.figure(figsize=(12, 6))
     df2['tp_ocor'].value_counts().plot(kind='bar')
     plt.title('Frequência de tp_ocor')
-    plt.savefig('static/graficos/new/barras_tp_ocor_tres1.png')  # Salvar o gráfico de barras como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/barras_tp_ocor_tres1.png')  # Salvar o gráfico de barras como um arquivo de imagem
     plt.show()
 
     plt.figure(figsize=(12, 6))
     df2['Situacao'].value_counts().plot(kind='bar')
     plt.title('Frequência de Situacao')
-    plt.savefig('static/graficos/new/barras_situacao_tres1.png')  # Salvar o gráfico de barras como um arquivo de imagem
+    plt.savefig('static/graficos/new/tres/barras_situacao_tres1.png')  # Salvar o gráfico de barras como um arquivo de imagem
     plt.show()
 
     # Scatter plot entre diasresolucao e VlCusto
@@ -197,7 +214,7 @@ def gerar_graficos():
     plt.title('Relação entre Dias de Resolução e VlCusto')
     plt.xlabel('Dias de Resolução')
     plt.ylabel('VlCusto')
-    plt.savefig('static/graficos/new/vlcusto_diasresol_tres1.png')
+    plt.savefig('static/graficos/new/tres/vlcusto_diasresol_tres1.png')
     plt.show()
 
     return "Processamento concluído e informações exibidas no console."

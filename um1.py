@@ -89,7 +89,66 @@ def dashboard_um_console():
     print(f"Último registro do caso 1: {ultimo_dia}")
     print(f"Total de dias do caso 1: {total_dias}")
 
-    print(df.columns)
+    # Visualizações
+    plt.figure(figsize=(10, 6))
+    sns.histplot(df['km_rodado'].dropna(), bins=50, kde=True)
+    plt.title('Distribuição de km_rodado')
+    plt.xlabel('km_rodado')
+    plt.ylabel('Frequência')
+    plt.savefig('static/graficos/new/um/kmrodado_um1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    sns.boxplot(data=df, x='Filial', y='frete_total')
+    plt.title('Dispersão de frete_total por Filial')
+    plt.xlabel('Filial')
+    plt.ylabel('frete_total')
+    plt.savefig('static/graficos/new/um/frete_filial_um1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    df['mes_ano'] = df['data'].dt.to_period('M')
+    ocorrencias_por_mes = df.groupby('mes_ano').size()
+    ocorrencias_por_mes.plot(kind='line')
+    plt.title('Número de Entregas Realizadas ao Longo do Tempo')
+    plt.xlabel('Mês/Ano')
+    plt.ylabel('Número de Entregas Realizadas')
+    plt.xticks(rotation=45)
+    plt.savefig('static/graficos/new/um/entregas_tempo_um1.png') 
+    plt.close()
+
+    # Remoção de Colunas Desnecessárias
+    df = df.drop(columns=['mes_ano'])
+    
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(df.corr(), annot=True, cmap='coolwarm', vmin=-1, vmax=1)
+    plt.title('Heatmap de Correlações')
+    plt.savefig('static/graficos/new/um/corr_um1.png') 
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=df, x='km_rodado', y='frete_total')
+    plt.title('Relação entre Quilometragem Rodada e frete_total')
+    plt.xlabel('Quilometragem Rodada')
+    plt.ylabel('frete_total')
+    plt.savefig('static/graficos/new/um/kmrodado_frete_um1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    sns.countplot(data=df, x='Filial')
+    plt.title('Distribuição de Filiais')
+    plt.xlabel('Filial')
+    plt.ylabel('Frequência')
+    plt.savefig('static/graficos/new/um/filial_um1.png') 
+    plt.close()
+
+    plt.figure(figsize=(14, 8))
+    sns.boxplot(data=df, x='Filial', y='tempo_total')
+    plt.title('Dispersão de tempo_total por Filial')
+    plt.xlabel('Filial')
+    plt.ylabel('tempo_total')
+    plt.savefig('static/graficos/new/um/tempototal_filial_um1.png') 
+    plt.close()
 
     
     return "RESULTADO"
