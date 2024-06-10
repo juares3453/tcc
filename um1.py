@@ -298,25 +298,27 @@ def dashboard_um_console():
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
 
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':[4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(X_scaled,kmeans_silhouette.labels_)
-    best_clf = grid.best_estimator_
-    best = best_clf
+    # tree = DecisionTreeClassifier()
+    # tree_para = {'criterion':['entropy','gini'],'max_depth':
+    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+    #              'min_samples_leaf':[1,2,3,4,5]}
+    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    # grid.fit(X_scaled,kmeans_silhouette.labels_)
+    # best_clf = grid.best_estimator_
+    # best = best_clf
 
-    # Exibir resultados do GridSearchCV
-    best_params = grid.best_params_
-    best_score = grid.best_score_
+    # # Exibir resultados do GridSearchCV
+    # best_params = grid.best_params_
+    # best_score = grid.best_score_
     
-    print(f'Best parameters found: {best_params}')
-    print(f'Best score found: {best_score}')
+    # print(f'Best parameters found: {best_params}')
+    # print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=30, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=70, min_samples_leaf=1)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
@@ -327,8 +329,8 @@ def dashboard_um_console():
 
     #Test
     cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
+    lbl1 = ['high', 'low']
+    lbl2 = ['high', 'low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Test")
@@ -343,8 +345,8 @@ def dashboard_um_console():
 
     predictions = cross_val_predict(tree,X_scaled,kmeans_silhouette.labels_,cv=10)
     cf = confusion_matrix(kmeans_silhouette.labels_,predictions)
-    lbl1 = ['high', 'medium', 'low']
-    lbl2 = ['high', 'medium', 'low']
+    lbl1 = ['high', 'low']
+    lbl2 = ['high', 'low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Cross Validation")
@@ -356,9 +358,31 @@ def dashboard_um_console():
     
     #Gera arvore de decisao
     plt.figure(figsize=(100, 100))
-    plot_tree(tree, filled=True, fontsize=7)
+    plot_tree(tree, filled=True, fontsize=16, proportion=True)
+    plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.title("Decision Tree")
     plt.savefig('static/graficos/new/um/df_decision_tree.png')  # Salvando o gráfico
+    plt.close()
+
+    path = tree.cost_complexity_pruning_path(X_train, y_train)
+    ccp_alphas, impurities = path.ccp_alphas, path.impurities
+
+    trees = []
+    for ccp_alpha in ccp_alphas:
+        tree = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
+        tree.fit(X_train, y_train)
+        trees.append(tree)
+
+    train_scores = [tree.score(X_train, y_train) for tree in trees]
+    test_scores = [tree.score(X_test, y_test) for tree in trees]
+
+    best_alpha_index = np.argmax(test_scores)
+    best_tree = trees[best_alpha_index]
+
+    plt.figure(figsize=(40, 30))
+    plot_tree(best_tree, filled=True, fontsize=12, proportion=True)
+    plt.subplots_adjust(wspace=0.8, hspace=0.8)
+    plt.savefig('static/graficos/new/um/df_decision_tree_poda.png')  # Salvando o gráfico
     plt.close()
 
     return "RESULTADO"
