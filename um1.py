@@ -41,6 +41,65 @@ def get_dataframe(csv_filepath):
     df = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
     return df
 
+def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
+    inner_tree: _tree.Tree = tree.tree_
+    classes = tree.classes_
+    class_rules_dict = dict()
+
+    def tree_dfs(node_id=0, current_rule=[]):
+        split_feature = inner_tree.feature[node_id]
+        if split_feature != _tree.TREE_UNDEFINED:  # nó interno
+            name = feature_names[split_feature]
+            threshold = inner_tree.threshold[node_id]
+            left_rule = current_rule + ["({} <= {})".format(name, threshold)]
+            tree_dfs(inner_tree.children_left[node_id], left_rule)
+            right_rule = current_rule + ["({} > {})".format(name, threshold)]
+            tree_dfs(inner_tree.children_right[node_id], right_rule)
+        else:  # folha
+            dist = inner_tree.value[node_id][0]
+            dist = dist / dist.sum()
+            max_idx = dist.argmax()
+            rule_string = " and ".join(current_rule) if current_rule else "ALL"
+            selected_class = classes[max_idx]
+            class_probability = dist[max_idx]
+            class_rules = class_rules_dict.get(selected_class, [])
+            class_rules.append((rule_string, class_probability))
+            class_rules_dict[selected_class] = class_rules
+
+    tree_dfs()  # começa da raiz, node_id = 0
+    return class_rules_dict
+
+def cluster_report(data: pd.DataFrame, clusters, min_samples_leaf=50, pruning_level=0.01):
+    tree = DecisionTreeClassifier(min_samples_leaf=min_samples_leaf, ccp_alpha=pruning_level)
+    tree.fit(data, clusters)
+
+    feature_names = data.columns
+    class_rule_dict = get_class_rules(tree, feature_names)
+
+    report_class_list = []
+    for class_name in class_rule_dict.keys():
+        rule_list = class_rule_dict[class_name]
+        combined_string = ""
+        for rule in rule_list:
+            combined_string += "[{}] {}\n\n".format(rule[1], rule[0])
+        report_class_list.append((class_name, combined_string))
+
+    cluster_instance_df = pd.Series(clusters).value_counts().reset_index()
+    cluster_instance_df.columns = ['class_name', 'instance_count']
+    report_df = pd.DataFrame(report_class_list, columns=['class_name', 'rule_list'])
+    report_df = pd.merge(cluster_instance_df, report_df, on='class_name', how='left')
+    return report_df.sort_values(by='class_name')[['class_name', 'instance_count', 'rule_list']]
+
+def print_cluster_report(report_df):
+    for index, row in report_df.iterrows():
+        print(f"Cluster {row['class_name']} ({row['instance_count']} instâncias)")
+        print("Regras:")
+        rules = row['rule_list'].split("\\n\\n")
+        for rule in rules:
+            print(f"  - {rule}")
+        print("\n")
+
+
 @analise.route('/gerar_graficos')
 def dashboard_um_console():
     df = get_dataframe(csv_filepath)
@@ -316,7 +375,7 @@ def dashboard_um_console():
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
-    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas foram geradas
+    train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
     tree = DecisionTreeClassifier(criterion='entropy', max_depth=70, min_samples_leaf=1)
     tree.fit(X_train,y_train)
@@ -384,6 +443,12 @@ def dashboard_um_console():
     plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.savefig('static/graficos/new/um/df_decision_tree_poda.png')  # Salvando o gráfico
     plt.close()
+
+    # Relatório de clusters
+    report_df = cluster_report(pd.DataFrame(X_scaled, columns=df.columns), kmeans_silhouette.labels_)
+
+    # Imprimir relatório no console
+    print_cluster_report(report_df)
 
     return "RESULTADO"
 
