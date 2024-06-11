@@ -78,6 +78,13 @@ Calculos AS (
         D.km_rodado,
         D.VlCapacVeic,
         D.NrAuxiliares,
+        D.Qtpeso,
+        D.QtpesoEx,
+        D.QtEntregas,
+        D.QtVolume,
+        D.QtVolumeEx,
+        D.Frete,
+        D.FreteEx,
         CASE 
             WHEN D.Ano = 2019 THEN (@Comb2019 * D.KM_Rodado) + (@VlPedagio * D.KM_Rodado) + (@Arla * D.KM_Rodado) + (@VlManutencao * D.KM_Rodado)
             WHEN D.Ano = 2020 THEN (@Comb2020 * D.KM_Rodado) + (@VlPedagio * D.KM_Rodado) + (@Arla * D.KM_Rodado) + (@VlManutencao * D.KM_Rodado)
@@ -101,6 +108,13 @@ SELECT distinct
     C.DsTpVeiculo,
     C.DsModelo,
     C.DsAnoFabricacao,
+    D.Qtpeso,
+    D.QtpesoEx,
+    D.QtEntregas,
+    D.QtVolume,
+    D.QtVolumeEx,
+    D.Frete,
+    D.FreteEx,
     CASE 
         WHEN COALESCE(A.TotalViagem,C.Vlcusto) IS NULL OR A.TotalViagem = 0 THEN C.VlCusto
         ELSE A.TotalViagem
