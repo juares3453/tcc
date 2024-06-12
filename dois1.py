@@ -340,9 +340,14 @@ def gerar_graficos():
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
 
     # tree = DecisionTreeClassifier()
-    # tree_para = {'criterion':['entropy','gini'],'max_depth':
-    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-    #              'min_samples_leaf':[1,2,3,4,5]}
+    # tree_para = {
+    #     'criterion': ['entropy', 'gini'],
+    #     'max_depth': [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+    #     'min_samples_leaf': [1, 2, 3, 4, 5],
+    #     'max_features': ['auto', 'sqrt', 'log2', None],
+    #     'min_samples_split': [2, 5, 10],
+    #     'ccp_alpha': [0.0, 0.01, 0.1]
+    # }
     # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
     # grid.fit(X_scaled,kmeans_silhouette.labels_)
     # best_clf = grid.best_estimator_
@@ -359,7 +364,7 @@ def gerar_graficos():
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='gini', max_depth=5, max_features='sqrt', min_samples_leaf=4, min_samples_split=2, ccp_alpha=0.0)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
