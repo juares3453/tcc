@@ -60,7 +60,7 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=6, min_samples_leaf=1, use_pruning=False):
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=50, min_samples_leaf=4, use_pruning=False):
     if use_pruning:
         X_train, X_test, y_train, y_test = train_test_split(data, clusters, test_size=0.3, random_state=42)
         tree = DecisionTreeClassifier(random_state=42)
@@ -326,7 +326,7 @@ def gerar_graficos():
         inertia.append(kmeans.inertia_)
 
     optimal_k_silhouette = K_range[np.argmax(silhouette_scores)]
-    optimal_k_elbow = 4 #K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
+    optimal_k_elbow = 3 #K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
 
     # Clustering com Silhouette
     kmeans_silhouette = KMeans(n_clusters=optimal_k_silhouette, random_state=42)
@@ -377,34 +377,36 @@ def gerar_graficos():
     plt.close()
 
     silhouette_avg_silhouette = silhouette_score(X_scaled, kmeans_silhouette.labels_)
+    elbow_avg_silhouette = silhouette_score(X_scaled, kmeans_elbow.labels_)
     davies_bouldin_silhouette = davies_bouldin_score(X_scaled, kmeans_silhouette.labels_)
     davies_bouldin_elbow = davies_bouldin_score(X_scaled, kmeans_elbow.labels_)
 
     print(f'Silhouette Score (Silhouette): {silhouette_avg_silhouette}')
+    print(f'Silhouette Score (Silhouette): {elbow_avg_silhouette}')
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
     
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':
-                 [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-                 'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(X_scaled,kmeans_silhouette.labels_)
-    best_clf = grid.best_estimator_
-    best = best_clf
+    # tree = DecisionTreeClassifier()
+    # tree_para = {'criterion':['entropy','gini'],'max_depth':
+    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+    #              'min_samples_leaf':[1,2,3,4,5]}
+    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    # grid.fit(X_scaled,kmeans_silhouette.labels_)
+    # best_clf = grid.best_estimator_
+    # best = best_clf
 
-    # Exibir resultados do GridSearchCV
-    best_params = grid.best_params_
-    best_score = grid.best_score_
+    # # Exibir resultados do GridSearchCV
+    # best_params = grid.best_params_
+    # best_score = grid.best_score_
     
-    print(f'Best parameters found: {best_params}')
-    print(f'Best score found: {best_score}')
+    # print(f'Best parameters found: {best_params}')
+    # print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_elbow.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=6, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=50, min_samples_leaf=4)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
@@ -415,8 +417,8 @@ def gerar_graficos():
 
     #Test
     cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'low']
-    lbl2 = ['high', 'low']
+    lbl1 = ['high', 'high med', 'low med','low']
+    lbl2 = ['high', 'high med', 'low med','low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Test")
@@ -424,22 +426,22 @@ def gerar_graficos():
     plt.close()
 
     #Cross Validation
-    predictions_test = cross_val_predict(tree,X_scaled,kmeans_silhouette.labels_,cv=10)
-    accuracy_test1 = accuracy_score(kmeans_silhouette.labels_,predictions_test)*100
+    predictions_test = cross_val_predict(tree,X_scaled,kmeans_elbow.labels_,cv=10)
+    accuracy_test1 = accuracy_score(kmeans_elbow.labels_,predictions_test)*100
 
     print(f'Acurácia: {accuracy_test1}')
 
-    predictions = cross_val_predict(tree,X_scaled,kmeans_silhouette.labels_,cv=10)
-    cf = confusion_matrix(kmeans_silhouette.labels_,predictions)
-    lbl1 = ['high', 'low']
-    lbl2 = ['high', 'low']
+    predictions = cross_val_predict(tree,X_scaled,kmeans_elbow.labels_,cv=10)
+    cf = confusion_matrix(kmeans_elbow.labels_,predictions)
+    lbl1 = ['high', 'high med', 'low med','low']
+    lbl2 = ['high', 'high med', 'low med','low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Cross Validation")
     plt.savefig('static/graficos/new/tres/df_confusion_matrix_cv.png')  # Salvando o gráfico
     plt.close()
 
-    report = classification_report(kmeans_silhouette.labels_,predictions)
+    report = classification_report(kmeans_elbow.labels_,predictions)
     print(f'Report: {report}')
     
     #Gera arvore de decisao
@@ -472,15 +474,15 @@ def gerar_graficos():
     plt.close()
 
     # Relatório de clusters sem poda
-    report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_silhouette.labels_)
+    report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_elbow.labels_)
     # Relatório de clusters com poda
-    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_silhouette.labels_, use_pruning=True)
+    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_elbow.labels_, use_pruning=True)
 
     # Imprimir relatórios no console
     print("Relatório sem poda:")
     print_cluster_report(report_df_no_pruning)
-    print("\nRelatório com poda:")
-    print_cluster_report(report_df_pruning)
+    # print("\nRelatório com poda:")
+    # print_cluster_report(report_df_pruning)
 
     return "Processamento concluído e informações exibidas no console."
 
