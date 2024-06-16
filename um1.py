@@ -2,19 +2,16 @@ from flask import Flask, render_template, send_file
 import matplotlib as mpl
 import os
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.impute import SimpleImputer
 import matplotlib.pyplot as plt
 import seaborn as sns
-import statsmodels.api as sm
-from scipy.stats import shapiro
 from scipy import stats
 import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler 
 from sklearn.metrics import silhouette_score, davies_bouldin_score
 from sklearn.decomposition import PCA
-from sklearn.tree import DecisionTreeClassifier, export_graphviz, plot_tree, _tree
+from sklearn.tree import DecisionTreeClassifier, plot_tree, _tree
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -69,8 +66,8 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, min_samples_leaf=50, pruning_level=0.01):
-    tree = DecisionTreeClassifier(min_samples_leaf=min_samples_leaf, ccp_alpha=pruning_level)
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy', max_depth=11, min_samples_leaf=4):
+    tree = DecisionTreeClassifier(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf)
     tree.fit(data, clusters)
 
     feature_names = data.columns
@@ -106,60 +103,58 @@ def dashboard_um_console():
     df_old = pd.read_csv(csv_filepath, encoding='cp1252', delimiter=';')
 
     # Tratamento de Valores Nulos
-    imputer = SimpleImputer(strategy='mean')
-    df[['frete_total', 'frete_entregue']] = imputer.fit_transform(df[['frete_total', 'frete_entregue']])
+    # imputer = SimpleImputer(strategy='mean')
+    # df[['frete_total', 'frete_entregue']] = imputer.fit_transform(df[['frete_total', 'frete_entregue']])
 
-    # Conversão de Tipos de Dados
-    df['Dia'] = df['Dia'].astype(int)
-    df['Mes'] = df['Mes'].astype(int)
-    df['Ano'] = df['Ano'].astype(int)
+    # # Conversão de Tipos de Dados
+    # df['Dia'] = df['Dia'].astype(int)
+    # df['Mes'] = df['Mes'].astype(int)
+    # df['Ano'] = df['Ano'].astype(int)
 
-    # Unificação de colunas de data
-    df['data'] = pd.to_datetime(df[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
-
-    # Remoção de Colunas Desnecessárias
-    df = df.drop(columns=['Ano', 'Mes', 'Dia'])
+    # # Remoção de Colunas Desnecessárias
+    # df = df.drop(columns=['Ano', 'Mes', 'Dia'])
 
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
     df['Filial'] = label_encoder.fit_transform(df['Filial'])
 
     # Tratamento de Outliers
-    Q1 = df[['km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue']].quantile(0.25)
-    Q3 = df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']].quantile(0.75)
-    IQR = Q3 - Q1
-    df = df[~((df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']] < (Q1 - 1.5 * IQR)) 
-    | (df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']] > (Q3 + 1.5 * IQR))).any(axis=1)]
+    # Q1 = df[['km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
+    #     'volumes_entregues']].quantile(0.25)
+    # Q3 = df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
+    #     'volumes_entregues']].quantile(0.75)
+    # IQR = Q3 - Q1
+    # df = df[~((df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
+    #     'volumes_entregues']] < (Q1 - 1.5 * IQR)) 
+    # | (df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
+    #     'volumes_entregues']] > (Q3 + 1.5 * IQR))).any(axis=1)]
 
     # Normalização e Padronização
     scaler = MinMaxScaler()
-    df[['volumes_total',  
-        'volumes_entregues', 'Filial', 'km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue',
-          'conf_carregamento', 'conf_entrega', 'auxiliares']] = scaler.fit_transform(df[[
-        'volumes_total', 'volumes_entregues', 'Filial', 'km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue', 'conf_carregamento', 'conf_entrega', 'auxiliares']])
+    df[['Dia', 'Mes', 'Ano','volumes_total',  
+        'volumes_entregues', 'Filial', 'km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 
+        'peso_entregue', 'conf_carregamento', 'conf_entrega', 'auxiliares', 'entregas_total', 'entregas_realizadas']] = scaler.fit_transform(df[['Dia', 'Mes', 'Ano', 'volumes_total', 
+        'volumes_entregues', 'Filial', 'km_rodado', 'tempo_total', 'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue', 
+                               'conf_carregamento', 'conf_entrega', 'auxiliares', 'entregas_total', 'entregas_realizadas']])
 
-    # Tratamento de Outliers usando Z-score
-    z_scores = np.abs(stats.zscore(df[['frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']]))
-    df = df[(z_scores < 3).all(axis=1)]
+    # # Remoção de Colunas Desnecessárias
+    # df = df.drop(columns=['data'])
 
-    # Remoção de Colunas Desnecessárias
-    df = df.drop(columns=['entregas_total', 'entregas_realizadas', 'Filial', 'data', 'volumes_total', 'volumes_entregues'])
-
-    # Verificação de Duplicatas
-    df.drop_duplicates(inplace=True)
+    # # Verificação de Duplicatas
+    # df.drop_duplicates(inplace=True)
 
     # Informações após o tratamento
-    print("Shape do DataFrame:")
-    print(df.shape)
-    print(" ")
-    print("Valores nulos por coluna:")
-    print(df.isnull().sum())
-    print(" ")
-    print("Tipos de dados:")
-    print(df.dtypes)
-    print(" ")
-    print("Primeiras linhas do DataFrame:")
-    print(df.head())
+    # print("Shape do DataFrame:")
+    # print(df.shape)
+    # print(" ")
+    # print("Valores nulos por coluna:")
+    # print(df.isnull().sum())
+    # print(" ")
+    # print("Tipos de dados:")
+    # print(df.dtypes)
+    # print(" ")
+    # print("Primeiras linhas do DataFrame:")
+    # print(df.head())
 
     # primeiro_dia = df['data'].min().strftime("%d %b %Y") 
     # ultimo_dia = df['data'].max().strftime("%d %b %Y") 
@@ -170,9 +165,10 @@ def dashboard_um_console():
     # print(f"Total de dias do caso 1: {total_dias}")
 
     # Heatmap de Correlação
-    # plt.figure(figsize=(12, 8))
+    # plt.figure(figsize=(14, 12))
     # correlation_matrix = df.corr()
     # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+    # plt.gcf().subplots_adjust(bottom=0.13, top=0.96)
     # plt.title('Heatmap de Correlação')
     # plt.savefig('static/graficos/new/um/heatmap_correlacao_um1.png')  # Salvar o heatmap como um arquivo de imagem
     # plt.show()
@@ -191,15 +187,19 @@ def dashboard_um_console():
     # df_filtered_zscore = df[(z_scores < 3).all(axis=1)]
 
     # # Visualização com Boxplot
-    # plt.figure(figsize=(12, 8))
-    # df[['frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']].boxplot()
+    # plt.figure(figsize=(16, 10))
+    # df.boxplot()
+    # plt.tight_layout()
+    # plt.xticks(rotation=45, ha='right')  # Rotaciona 45 graus e alinha à direita
+    # plt.gcf().subplots_adjust(bottom=0.2, top=0.9)
     # plt.title('Boxplot para Identificação de Outliers')
     # plt.savefig('static/graficos/new/um/boxplot_outliers.png')
     # plt.show()
 
-    # #Histograma
+    #Histograma
     # plt.figure(figsize=(12, 8))
-    # df[['frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']].hist(bins=20, figsize=(12, 8))
+    # df[['Dia', 'Mes', 'Ano', 'Filial', 'conf_carregamento', 'conf_entrega', 'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total', 'entregas_realizadas', 'volumes_total', 'volumes_entregues',
+    #      'peso_total', 'peso_entregue', 'frete_total', 'frete_entregue']].hist(bins=20, figsize=(12, 8))
     # plt.tight_layout()
     # plt.savefig('static/graficos/new/um/histogramas_antigo_um1.png')  # Salvar o histograma como um arquivo de imagem
     # plt.show()
@@ -297,7 +297,7 @@ def dashboard_um_console():
         inertia.append(kmeans.inertia_)
 
     optimal_k_silhouette = K_range[np.argmax(silhouette_scores)]
-    optimal_k_elbow = K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
+    optimal_k_elbow = 4#K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
 
     # Clustering com Silhouette
     kmeans_silhouette = KMeans(n_clusters=optimal_k_silhouette, random_state=42)
@@ -348,12 +348,10 @@ def dashboard_um_console():
     plt.close()
 
     silhouette_avg_silhouette = silhouette_score(X_scaled, kmeans_silhouette.labels_)
-    silhouette_avg_elbow = silhouette_score(X_scaled, kmeans_elbow.labels_)
     davies_bouldin_silhouette = davies_bouldin_score(X_scaled, kmeans_silhouette.labels_)
     davies_bouldin_elbow = davies_bouldin_score(X_scaled, kmeans_elbow.labels_)
 
     print(f'Silhouette Score (Silhouette): {silhouette_avg_silhouette}')
-    print(f'Silhouette Score (Elbow): {silhouette_avg_elbow}')
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
 
@@ -377,7 +375,7 @@ def dashboard_um_console():
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=70, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=1)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
@@ -388,8 +386,8 @@ def dashboard_um_console():
 
     #Test
     cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'low']
-    lbl2 = ['high', 'low']
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Test")
@@ -404,8 +402,8 @@ def dashboard_um_console():
 
     predictions = cross_val_predict(tree,X_scaled,kmeans_silhouette.labels_,cv=10)
     cf = confusion_matrix(kmeans_silhouette.labels_,predictions)
-    lbl1 = ['high', 'low']
-    lbl2 = ['high', 'low']
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Cross Validation")

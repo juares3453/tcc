@@ -60,7 +60,7 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy', max_depth=4, min_samples_leaf=1):
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy', max_depth=11, min_samples_leaf=4):
     tree = DecisionTreeClassifier(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf)
     tree.fit(data, clusters)
 
@@ -99,61 +99,53 @@ def gerar_graficos():
     df2['VlCusto'] = df2['VlCusto'].str.replace(',', '.')
 
     # Conversão de colunas numéricas para tipos numéricos, tratando erros
-    colunas_numericas = ['dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 
-                         'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao', 'diasresolucao', 'NrBo', 'VlCusto']
-    for coluna in colunas_numericas:
-        df2[coluna] = pd.to_numeric(df2[coluna], errors='coerce')
-
-    # Tratamento de Valores Nulos
-    imputer_num = SimpleImputer(strategy='mean')
-    imputer_cat = SimpleImputer(strategy='most_frequent')
-    df2[colunas_numericas] = imputer_num.fit_transform(df2[colunas_numericas])
-    colunas_categoricas = ['Resp', 'CLIENTE', 'DsLocal', 'tp_ocor', 'Situacao', 'dsocorrencia']
-    
-
+    colunas_categoricas = ['DsLocal', 'tp_ocor',  'Situacao', 'dsocorrencia', 'CLIENTE']
+   
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
     for coluna in colunas_categoricas:
         df2[coluna] = label_encoder.fit_transform(df2[coluna].astype(str))
 
-    df2[colunas_categoricas] = imputer_cat.fit_transform(df2[colunas_categoricas])
+    # df2[colunas_categoricas] = imputer_cat.fit_transform(df2[colunas_categoricas])
 
      # Conversão de Tipos de Dados
-    df2['anocte'] = df2['anocte'].astype(int)
-    df2['mescte'] = df2['mescte'].astype(int)
-    df2['dtcte'] = df2['dtcte'].astype(int)
-    df2['anoemissao'] = df2['anoemissao'].astype(int)
-    df2['mesemissao'] = df2['mesemissao'].astype(int)
-    df2['dtemissao'] = df2['dtemissao'].astype(int)
-    df2['anoocor'] = df2['anoocor'].astype(int)
-    df2['mesocor'] = df2['mesocor'].astype(int)
-    df2['dtocor'] = df2['dtocor'].astype(int)
-    df2['anobaixa'] = df2['anobaixa'].astype(int)
-    df2['mesbaixa'] = df2['mesbaixa'].astype(int)
-    df2['dtbaixa'] = df2['dtbaixa'].astype(int)
+    # df2['anocte'] = df2['anocte'].astype(int)
+    # df2['mescte'] = df2['mescte'].astype(int)
+    # df2['dtcte'] = df2['dtcte'].astype(int)
+    # df2['anoemissao'] = df2['anoemissao'].astype(int)
+    # df2['mesemissao'] = df2['mesemissao'].astype(int)
+    # df2['dtemissao'] = df2['dtemissao'].astype(int)
+    # df2['anoocor'] = df2['anoocor'].astype(int)
+    # df2['mesocor'] = df2['mesocor'].astype(int)
+    # df2['dtocor'] = df2['dtocor'].astype(int)
+    # df2['anobaixa'] = df2['anobaixa'].astype(int)
+    # df2['mesbaixa'] = df2['mesbaixa'].astype(int)
+    # df2['dtbaixa'] = df2['dtbaixa'].astype(int)
 
-    # Combinação de colunas de datas
-    df2['data_cte'] = pd.to_datetime(df2[['anocte', 'mescte', 'dtcte']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-    df2['data_emissao_bo'] = pd.to_datetime(df2[['anoemissao', 'mesemissao', 'dtemissao']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-    df2['data_ocor'] = pd.to_datetime(df2[['anoocor', 'mesocor', 'dtocor']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-    df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    # # Combinação de colunas de datas
+    # df2['data_cte'] = pd.to_datetime(df2[['anocte', 'mescte', 'dtcte']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    # df2['data_emissao_bo'] = pd.to_datetime(df2[['anoemissao', 'mesemissao', 'dtemissao']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    # df2['data_ocor'] = pd.to_datetime(df2[['anoocor', 'mesocor', 'dtocor']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
+    # df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
 
     # Exclusão de colunas de dia, mês e ano originais
-    df2 = df2.drop(columns=[ 'dtemissao', 'dtocor', 'mesocor', 'anoocor', 
-                            'dtbaixa', 'mesbaixa', 'anobaixa', 'dtcte', 'mescte', 'anocte', 'data_cte', 'data_emissao_bo', 'data_ocor', 'data_baixa', 'mesemissao', 'anoemissao', 'diasemissao'])
+    # df2 = df2.drop(columns=[ 'dtemissao', 'dtocor', 'mesocor', 'anoocor', 
+    #                         'dtbaixa', 'mesbaixa', 'anobaixa', 'dtcte', 'mescte', 'anocte', 'data_cte', 'data_emissao_bo', 'data_ocor', 'data_baixa', 'mesemissao', 'anoemissao', 'diasemissao'])
 
     # Remoção de duplicatas
     df2.drop_duplicates(inplace=True)
 
-    # Tratamento de Outliers usando Z-score
-    z_scores = np.abs(stats.zscore(df2[['diasresolucao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'DsLocal', 'tp_ocor', 'VlCusto', 'Situacao', 'Resp']]))
-    df2 = df2[(z_scores < 3).all(axis=1)]
+    # Remover valores nulos
+    df2.dropna(inplace=True)
 
-    # Normalização dos dados
+    # # Tratamento de Outliers usando Z-score
+    # z_scores = np.abs(stats.zscore(df2[['diasresolucao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'DsLocal', 'tp_ocor', 'VlCusto', 'Situacao', 'Resp']]))
+    # df2 = df2[(z_scores < 3).all(axis=1)]
+
+    # # Normalização dos dados
     scaler = MinMaxScaler()
-    colunas_para_normalizar = ['diasresolucao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'DsLocal', 'tp_ocor', 'VlCusto', 'Situacao', 'Resp']
-    df2[colunas_para_normalizar] = scaler.fit_transform(df2[colunas_para_normalizar])
-
+    # colunas_para_normalizar = ['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']
+    df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']] = scaler.fit_transform(df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']])
 
     # # Análise e tratamento de outliers
     # Q1 = df2['VlCusto'].quantile(0.25)
@@ -162,17 +154,17 @@ def gerar_graficos():
     # df2 = df2[~((df2['VlCusto'] < (Q1 - 1.5 * IQR)) | (df2['VlCusto'] > (Q3 + 1.5 * IQR)))]
 
     # Impressão das informações no console
-    print("Shape do DataFrame:")
-    print(df2.shape)
-    print(" ")
-    print("Valores nulos por coluna:")
-    print(df2.isnull().sum())
-    print(" ")
-    print("Tipos de dados:")
-    print(df2.dtypes)
-    print(" ")
-    print("Primeiras linhas do DataFrame:")
-    print(df2.head())
+    # print("Shape do DataFrame:")
+    # print(df2.shape)
+    # print(" ")
+    # print("Valores nulos por coluna:")
+    # print(df2.isnull().sum())
+    # print(" ")
+    # print("Tipos de dados:")
+    # print(df2.dtypes)
+    # print(" ")
+    # print("Primeiras linhas do DataFrame:")
+    # print(df2.head())
     
     # primeiro_dia = df2['data_emissao_bo'].min().strftime("%d %b %Y") 
     # ultimo_dia = df2['data_emissao_bo'].max().strftime("%d %b %Y") 
@@ -183,20 +175,20 @@ def gerar_graficos():
     # print(f"Total de dias do caso 3: {total_dias}")
 
     # Heatmap de Correlação
-    plt.figure(figsize=(12, 8))
-    correlation_matrix = df2.corr()
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-    plt.title('Heatmap de Correlação')
-    plt.savefig('static/graficos/new/tres/heatmap_correlacao_tres1.png')  # Salvar o heatmap como um arquivo de imagem
-    plt.show()
+    # plt.figure(figsize=(16, 12))
+    # correlation_matrix = df2.corr()
+    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+    # plt.gcf().subplots_adjust(bottom=0.13, top=0.96)
+    # plt.title('Heatmap de Correlação')
+    # plt.savefig('static/graficos/new/tres/heatmap_correlacao_tres1.png')  # Salvar o heatmap como um arquivo de imagem
+    # plt.show()
 
-
-    # # Histograma
-    plt.figure(figsize=(12, 8))
-    df2[['diasresolucao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'DsLocal', 'tp_ocor', 'VlCusto', 'Situacao', 'Resp']].hist(bins=20, figsize=(12, 8))
-    plt.tight_layout()
-    plt.savefig('static/graficos/new/tres/histogramas_tres1.png')  # Salvar o histograma como um arquivo de imagem
-    plt.show()
+    # # # # # Histograma
+    # plt.figure(figsize=(12, 8))
+    # df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'Situacao', 'NrBo', 'dsocorrencia', 'VlCusto']].hist(bins=20, figsize=(12, 8))
+    # plt.tight_layout()
+    # plt.savefig('static/graficos/new/tres/histogramas_tres1.png')  # Salvar o histograma como um arquivo de imagem
+    # plt.show()
 
     # # Histograma de VlCusto 
     # plt.figure(figsize=(10, 6)) 
@@ -305,7 +297,7 @@ def gerar_graficos():
     # plt.savefig('static/graficos/new/tres/vlcusto_diasresol_tres1.png')
     # plt.show()
 
-    # Aplicação do KMeans e Determinação do Número Ideal de Clusters
+    #Aplicação do KMeans e Determinação do Número Ideal de Clusters
     X_scaled = df2.copy()
     silhouette_scores = []
     inertia = []
@@ -319,7 +311,7 @@ def gerar_graficos():
         inertia.append(kmeans.inertia_)
 
     optimal_k_silhouette = K_range[np.argmax(silhouette_scores)]
-    optimal_k_elbow = K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
+    optimal_k_elbow = 4 #K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
 
     # Clustering com Silhouette
     kmeans_silhouette = KMeans(n_clusters=optimal_k_silhouette, random_state=42)
@@ -370,12 +362,10 @@ def gerar_graficos():
     plt.close()
 
     silhouette_avg_silhouette = silhouette_score(X_scaled, kmeans_silhouette.labels_)
-    silhouette_avg_elbow = silhouette_score(X_scaled, kmeans_elbow.labels_)
     davies_bouldin_silhouette = davies_bouldin_score(X_scaled, kmeans_silhouette.labels_)
     davies_bouldin_elbow = davies_bouldin_score(X_scaled, kmeans_elbow.labels_)
 
     print(f'Silhouette Score (Silhouette): {silhouette_avg_silhouette}')
-    print(f'Silhouette Score (Elbow): {silhouette_avg_elbow}')
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
     
@@ -399,7 +389,7 @@ def gerar_graficos():
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=11, min_samples_leaf=4)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100

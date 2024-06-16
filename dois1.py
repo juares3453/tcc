@@ -103,88 +103,53 @@ def gerar_graficos():
     # Substituição de vírgulas por pontos na coluna 'VlCusto' e 'Lucro'
     df1['VlCusto'] = df1['VlCusto'].str.replace(',', '.')
     df1['Lucro'] = df1['Lucro'].str.replace(',', '.')
-
-    # Conversão de tipos de dados
-    df1['VlCusto'] = pd.to_numeric(df1['VlCusto'], errors='coerce')
-    df1['Lucro'] = pd.to_numeric(df1['Lucro'], errors='coerce')
-
-    # Tratamento de Valores Nulos
-    imputer = SimpleImputer(strategy='mean')
-    df1[['VlCusto', 'Lucro', '%CapacidadeCarre']] = imputer.fit_transform(df1[['VlCusto', 'Lucro', '%CapacidadeCarre']])
-
-    # Imputação com mediana
-    imputer = SimpleImputer(strategy='median')
-    df1[['FreteEx', '%Lucro']] = imputer.fit_transform(df1[['FreteEx', '%Lucro']])
-
-    # Conversão de Tipos de Dados
-    df1['Dia'] = df1['Dia'].astype(int)
-    df1['Mes'] = df1['Mes'].astype(int)
-    df1['Ano'] = df1['Ano'].astype(int)
-
-    # Unificação de colunas de data
-    df1['data'] = pd.to_datetime(df1[['Ano', 'Mes', 'Dia']].astype(str).agg('-'.join, axis=1), errors='coerce')
-
-    # Remoção de Colunas Desnecessárias
-    df1 = df1.drop(columns=['Ano', 'Mes', 'Dia', '%CapacidadeEntr', '%VolumesEntr', '%PesoEntr', '%Entregas', '%FreteCobrado']) 
+    
+    # Remover valores nulos
+    df1.dropna(inplace=True)
 
     # Codificação de Variáveis Categóricas
     label_encoder = LabelEncoder()
     df1['DsTpVeiculo'] = label_encoder.fit_transform(df1['DsTpVeiculo'])
     df1['DsModelo'] = label_encoder.fit_transform(df1['DsModelo'])
-    df1['DsAnoFabricacao'] = label_encoder.fit_transform(df1['DsAnoFabricacao'])
-    df1['VlCapacVeic'] = label_encoder.fit_transform(df1['VlCapacVeic'])
 
-    df1[['VlCusto', 'km_rodado', 'FreteEx', '%CapacidadeCarre']] = np.log1p(df1[['VlCusto', 'km_rodado', 'FreteEx', '%CapacidadeCarre']])
-
-    # Normalização e Padronização
+    # Normalização
     scaler = MinMaxScaler()
-    df1[['Lucro', '%Lucro', 'DsTpVeiculo', 'DsModelo', 'DsAnoFabricacao', 'VlCapacVeic', 'NrAuxiliares']] = scaler.fit_transform(df1[['Lucro', '%Lucro', 'DsTpVeiculo', 'DsModelo', 'DsAnoFabricacao', 'VlCapacVeic', 'NrAuxiliares']])
-    
-    # Tratamento de Outliers
-    Q1 = df1[['km_rodado', 'FreteEx', 'Lucro', '%Lucro', '%CapacidadeCarre']].quantile(0.25)
-    Q3 = df1[['km_rodado', 'FreteEx',  'Lucro', '%Lucro', '%CapacidadeCarre']].quantile(0.75)
-    IQR = Q3 - Q1
-    df1 = df1[~((df1[['km_rodado', 'FreteEx', 'Lucro', '%Lucro', '%CapacidadeCarre']] < (Q1 - 1.5 * IQR)) | (df1[['km_rodado', 'FreteEx', 'Lucro', '%Lucro', '%CapacidadeCarre']] > (Q3 + 1.5 * IQR))).any(axis=1)]
-
-    # Verificação de Duplicatas
-    df1.drop_duplicates(inplace=True)
+    df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
+       'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
+       'Lucro', '%Lucro']] = scaler.fit_transform(df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
+       'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
+       'Lucro', '%Lucro']])
 
     # Informações após o tratamento
-    print("Shape do DataFrame:")
-    print(df1.shape)
-    print(" ")
-    print("Valores nulos por coluna:")
-    print(df1.isnull().sum())
-    print(" ")
-    print("Tipos de dados:")
-    print(df1.dtypes)
-    print(" ")
-    print("Primeiras linhas do DataFrame:")
-    print(df1.head())
+    # print("Shape do DataFrame:")
+    # print(df1.shape)
+    # print(" ")
+    # print("Valores nulos por coluna:")
+    # print(df1.isnull().sum())
+    # print(" ")
+    # print("Tipos de dados:")
+    # print(df1.dtypes)
+    # print(" ")
+    # print("Primeiras linhas do DataFrame:")
+    # print(df1.head())
 
-    primeiro_dia = df1['data'].min().strftime("%d %b %Y") 
-    ultimo_dia = df1['data'].max().strftime("%d %b %Y") 
-    total_dias = df1['data'].max() - df1['data'].min()
-
-    print(f"Primeira registro do caso 2: {primeiro_dia}")
-    print(f"Último registro do caso 2: {ultimo_dia}")
-    print(f"Total de dias do caso 2: {total_dias}")
-
-    print(df1.columns)
-    # Heatmap de Correlação
-    # plt.figure(figsize=(12, 8))
+    # # Heatmap de Correlação
+    # plt.figure(figsize=(14, 12))
     # correlation_matrix = df1.corr()
     # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+    # plt.gcf().subplots_adjust(bottom=0.13, top=0.96)
     # plt.title('Heatmap de Correlação')
     # plt.savefig('static/graficos/new/dois/heatmap_correlacao_dois1.png')  # Salvar o heatmap como um arquivo de imagem
     # plt.show()
 
-    # Histograma
-    plt.figure(figsize=(12, 8))
-    df1[['VlCusto', 'km_rodado', 'NrAuxiliares', '%CapacidadeCarre', 'FreteEx', 'Lucro', '%Lucro']].hist(bins=20, figsize=(12, 8))
-    plt.tight_layout()
-    plt.savefig('static/graficos/new/dois/histogramas_dois1.png')  # Salvar o histograma como um arquivo de imagem
-    plt.show()
+    # # Histograma
+    # plt.figure(figsize=(12, 8))
+    # df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
+    #    'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
+    #    'Lucro', '%Lucro']].hist(bins=20, figsize=(12, 8))
+    # plt.tight_layout()
+    # plt.savefig('static/graficos/new/dois/histogramas_dois1.png')  # Salvar o histograma como um arquivo de imagem
+    # plt.show()
 
      # # Visualizações
     # plt.figure(figsize=(10, 6))
@@ -229,9 +194,6 @@ def gerar_graficos():
     # plt.xticks(rotation=45)
     # plt.savefig('static/graficos/new/dois/entregas_dois1.png') 
     # plt.close()
-
-    # Remoção de Colunas Desnecessárias
-    df1 = df1.drop(columns=['data'])
 
     # plt.figure(figsize=(12, 10))
     # sns.heatmap(df1.corr(), annot=True, cmap='coolwarm', vmin=-1, vmax=1)
@@ -330,35 +292,33 @@ def gerar_graficos():
     plt.close()
 
     silhouette_avg_silhouette = silhouette_score(X_scaled, kmeans_silhouette.labels_)
-    silhouette_avg_elbow = silhouette_score(X_scaled, kmeans_elbow.labels_)
     davies_bouldin_silhouette = davies_bouldin_score(X_scaled, kmeans_silhouette.labels_)
     davies_bouldin_elbow = davies_bouldin_score(X_scaled, kmeans_elbow.labels_)
 
     print(f'Silhouette Score (Silhouette): {silhouette_avg_silhouette}')
-    print(f'Silhouette Score (Elbow): {silhouette_avg_elbow}')
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
 
-    # tree = DecisionTreeClassifier()
-    # tree_para = {
-    #     'criterion': ['entropy', 'gini'],
-    #     'max_depth': [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-    #     'min_samples_leaf': [1, 2, 3, 4, 5],
-    #     'max_features': ['auto', 'sqrt', 'log2', None],
-    #     'min_samples_split': [2, 5, 10],
-    #     'ccp_alpha': [0.0, 0.01, 0.1]
-    # }
-    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    # grid.fit(X_scaled,kmeans_silhouette.labels_)
-    # best_clf = grid.best_estimator_
-    # best = best_clf
+    tree = DecisionTreeClassifier()
+    tree_para = {
+        'criterion': ['entropy', 'gini'],
+        'max_depth': [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+        'min_samples_leaf': [1, 2, 3, 4, 5],
+        'max_features': ['auto', 'sqrt', 'log2', None],
+        'min_samples_split': [2, 5, 10],
+        'ccp_alpha': [0.0, 0.01, 0.1]
+    }
+    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    grid.fit(X_scaled,kmeans_silhouette.labels_)
+    best_clf = grid.best_estimator_
+    best = best_clf
 
-    # # Exibir resultados do GridSearchCV
-    # best_params = grid.best_params_
-    # best_score = grid.best_score_
+    # Exibir resultados do GridSearchCV
+    best_params = grid.best_params_
+    best_score = grid.best_score_
     
-    # print(f'Best parameters found: {best_params}')
-    # print(f'Best score found: {best_score}')
+    print(f'Best parameters found: {best_params}')
+    print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
