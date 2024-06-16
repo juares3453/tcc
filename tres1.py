@@ -60,9 +60,25 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy', max_depth=11, min_samples_leaf=4):
-    tree = DecisionTreeClassifier(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf)
-    tree.fit(data, clusters)
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=6, min_samples_leaf=1, use_pruning=False):
+    if use_pruning:
+        X_train, X_test, y_train, y_test = train_test_split(data, clusters, test_size=0.3, random_state=42)
+        tree = DecisionTreeClassifier(random_state=42)
+        path = tree.cost_complexity_pruning_path(X_train, y_train)
+        ccp_alphas, impurities = path.ccp_alphas, path.impurities
+
+        trees = []
+        for ccp_alpha in ccp_alphas:
+            tree = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
+            tree.fit(X_train, y_train)
+            trees.append(tree)
+
+        test_scores = [tree.score(X_test, y_test) for tree in trees]
+        best_alpha_index = np.argmax(test_scores)
+        tree = trees[best_alpha_index]
+    else:
+        tree = DecisionTreeClassifier(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf)
+        tree.fit(data, clusters)
 
     feature_names = data.columns
     class_rule_dict = get_class_rules(tree, feature_names)
@@ -89,7 +105,6 @@ def print_cluster_report(report_df):
         for rule in rules:
             print(f"  - {rule}")
         print("\n")
-
 
 @analise.route('/gerar_graficos')
 def gerar_graficos():
@@ -369,27 +384,27 @@ def gerar_graficos():
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
     
-    # tree = DecisionTreeClassifier()
-    # tree_para = {'criterion':['entropy','gini'],'max_depth':
-    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-    #              'min_samples_leaf':[1,2,3,4,5]}
-    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    # grid.fit(X_scaled,kmeans_silhouette.labels_)
-    # best_clf = grid.best_estimator_
-    # best = best_clf
+    tree = DecisionTreeClassifier()
+    tree_para = {'criterion':['entropy','gini'],'max_depth':
+                 [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+                 'min_samples_leaf':[1,2,3,4,5]}
+    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    grid.fit(X_scaled,kmeans_silhouette.labels_)
+    best_clf = grid.best_estimator_
+    best = best_clf
 
-    # # Exibir resultados do GridSearchCV
-    # best_params = grid.best_params_
-    # best_score = grid.best_score_
+    # Exibir resultados do GridSearchCV
+    best_params = grid.best_params_
+    best_score = grid.best_score_
     
-    # print(f'Best parameters found: {best_params}')
-    # print(f'Best score found: {best_score}')
+    print(f'Best parameters found: {best_params}')
+    print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=11, min_samples_leaf=4)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=6, min_samples_leaf=1)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
@@ -456,11 +471,16 @@ def gerar_graficos():
     plt.savefig('static/graficos/new/tres/df_decision_tree_poda.png')  # Salvando o gráfico
     plt.close()
 
-    # Relatório de clusters
-    report_df = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_silhouette.labels_)
+    # Relatório de clusters sem poda
+    report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_silhouette.labels_)
+    # Relatório de clusters com poda
+    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_silhouette.labels_, use_pruning=True)
 
-    # Imprimir relatório no console
-    print_cluster_report(report_df)
+    # Imprimir relatórios no console
+    print("Relatório sem poda:")
+    print_cluster_report(report_df_no_pruning)
+    print("\nRelatório com poda:")
+    print_cluster_report(report_df_pruning)
 
     return "Processamento concluído e informações exibidas no console."
 
