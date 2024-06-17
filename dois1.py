@@ -21,6 +21,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_predict
+from mlxtend.plotting import plot_decision_regions
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -373,7 +374,7 @@ def gerar_graficos():
     print(f'Report: {report}')
     
     #Gera arvore de decisao
-    plt.figure(figsize=(100, 100))
+    plt.figure(figsize=(12, 8))
     plot_tree(tree, filled=True, fontsize=16, proportion=True)
     plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.title("Decision Tree")
@@ -395,7 +396,7 @@ def gerar_graficos():
     best_alpha_index = np.argmax(test_scores)
     best_tree = trees[best_alpha_index]
 
-    plt.figure(figsize=(40, 30))
+    plt.figure(figsize=(12, 8))
     plot_tree(best_tree, filled=True, fontsize=12, proportion=True)
     plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.savefig('static/graficos/new/dois/df_decision_tree_poda.png')  # Salvando o gráfico
@@ -411,6 +412,13 @@ def gerar_graficos():
     print_cluster_report(report_df_no_pruning)
     print("\nRelatório com poda:")
     print_cluster_report(report_df_pruning)
+
+    # Plotagem das regiões de decisão usando plot_decision_regions
+    plt.figure(figsize=(10, 8))
+    plot_decision_regions(X_pca, kmeans_silhouette.labels_, clf=kmeans_silhouette, legend=2)
+    plt.title('Regiões de Decisão KMeans (Silhouette)')
+    plt.savefig('static/graficos/new/dois/decision_regions_silhouette.png')
+    plt.close()
 
     return "Processamento concluído e informações exibidas no console."
 

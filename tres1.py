@@ -20,6 +20,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_predict
+from mlxtend.plotting import plot_decision_regions
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -60,7 +61,7 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=50, min_samples_leaf=4, use_pruning=False):
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy', max_depth=50, min_samples_leaf=4, use_pruning=False):
     if use_pruning:
         X_train, X_test, y_train, y_test = train_test_split(data, clusters, test_size=0.3, random_state=42)
         tree = DecisionTreeClassifier(random_state=42)
@@ -417,8 +418,8 @@ def gerar_graficos():
 
     #Test
     cf = confusion_matrix(y_test,predictions_test)
-    lbl1 = ['high', 'high med', 'low med','low']
-    lbl2 = ['high', 'high med', 'low med','low']
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Test")
@@ -433,8 +434,8 @@ def gerar_graficos():
 
     predictions = cross_val_predict(tree,X_scaled,kmeans_elbow.labels_,cv=10)
     cf = confusion_matrix(kmeans_elbow.labels_,predictions)
-    lbl1 = ['high', 'high med', 'low med','low']
-    lbl2 = ['high', 'high med', 'low med','low']
+    lbl1 = ['high', 'medium', 'low']
+    lbl2 = ['high', 'medium', 'low']
     plt.figure(figsize=(10, 7))
     sns.heatmap(cf, annot=True, cmap="Greens", fmt="d", xticklabels=lbl1, yticklabels=lbl2)
     plt.title("Confusion Matrix - Cross Validation")
@@ -445,7 +446,7 @@ def gerar_graficos():
     print(f'Report: {report}')
     
     #Gera arvore de decisao
-    plt.figure(figsize=(100, 100))
+    plt.figure(figsize=(12, 8))
     plot_tree(tree, filled=True, fontsize=16, proportion=True)
     plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.title("Decision Tree")
@@ -467,7 +468,7 @@ def gerar_graficos():
     best_alpha_index = np.argmax(test_scores)
     best_tree = trees[best_alpha_index]
 
-    plt.figure(figsize=(40, 30))
+    plt.figure(figsize=(12, 8))
     plot_tree(best_tree, filled=True, fontsize=12, proportion=True)
     plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.savefig('static/graficos/new/tres/df_decision_tree_poda.png')  # Salvando o gráfico
@@ -483,6 +484,14 @@ def gerar_graficos():
     print_cluster_report(report_df_no_pruning)
     # print("\nRelatório com poda:")
     # print_cluster_report(report_df_pruning)
+
+    # Plotagem das regiões de decisão usando plot_decision_regions
+    plt.figure(figsize=(10, 8))
+    plot_decision_regions(X_pca, kmeans_elbow.labels_, clf=kmeans_elbow, legend=2)
+    plt.title('Regiões de Decisão KMeans (Elbow)')
+    plt.savefig('static/graficos/new/tres/decision_regions_elbow.png')
+    plt.close()
+
 
     return "Processamento concluído e informações exibidas no console."
 

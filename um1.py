@@ -18,6 +18,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_predict
+from mlxtend.plotting import plot_decision_regions
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -66,9 +67,25 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy', max_depth=11, min_samples_leaf=4):
-    tree = DecisionTreeClassifier(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf)
-    tree.fit(data, clusters)
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=4, min_samples_leaf=1, use_pruning=False):
+    if use_pruning:
+        X_train, X_test, y_train, y_test = train_test_split(data, clusters, test_size=0.3, random_state=42)
+        tree = DecisionTreeClassifier(random_state=42)
+        path = tree.cost_complexity_pruning_path(X_train, y_train)
+        ccp_alphas, impurities = path.ccp_alphas, path.impurities
+
+        trees = []
+        for ccp_alpha in ccp_alphas:
+            tree = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
+            tree.fit(X_train, y_train)
+            trees.append(tree)
+
+        test_scores = [tree.score(X_test, y_test) for tree in trees]
+        best_alpha_index = np.argmax(test_scores)
+        tree = trees[best_alpha_index]
+    else:
+        tree = DecisionTreeClassifier(criterion=criterion, max_depth=max_depth, min_samples_leaf=min_samples_leaf)
+        tree.fit(data, clusters)
 
     feature_names = data.columns
     class_rule_dict = get_class_rules(tree, feature_names)
@@ -95,7 +112,6 @@ def print_cluster_report(report_df):
         for rule in rules:
             print(f"  - {rule}")
         print("\n")
-
 
 @analise.route('/gerar_graficos')
 def dashboard_um_console():
@@ -143,18 +159,18 @@ def dashboard_um_console():
     # # Verificação de Duplicatas
     # df.drop_duplicates(inplace=True)
 
-    # Informações após o tratamento
-    # print("Shape do DataFrame:")
-    # print(df.shape)
-    # print(" ")
-    # print("Valores nulos por coluna:")
-    # print(df.isnull().sum())
-    # print(" ")
-    # print("Tipos de dados:")
-    # print(df.dtypes)
-    # print(" ")
-    # print("Primeiras linhas do DataFrame:")
-    # print(df.head())
+    #Informações após o tratamento
+    print("Shape do DataFrame:")
+    print(df.shape)
+    print(" ")
+    print("Valores nulos por coluna:")
+    print(df.isnull().sum())
+    print(" ")
+    print("Tipos de dados:")
+    print(df.dtypes)
+    print(" ")
+    print("Primeiras linhas do DataFrame:")
+    print(df.head())
 
     # primeiro_dia = df['data'].min().strftime("%d %b %Y") 
     # ultimo_dia = df['data'].max().strftime("%d %b %Y") 
@@ -348,28 +364,30 @@ def dashboard_um_console():
     plt.close()
 
     silhouette_avg_silhouette = silhouette_score(X_scaled, kmeans_silhouette.labels_)
+    elbow_avg_silhouette = silhouette_score(X_scaled, kmeans_elbow.labels_)
     davies_bouldin_silhouette = davies_bouldin_score(X_scaled, kmeans_silhouette.labels_)
     davies_bouldin_elbow = davies_bouldin_score(X_scaled, kmeans_elbow.labels_)
 
     print(f'Silhouette Score (Silhouette): {silhouette_avg_silhouette}')
+    print(f'Silhouette Score (Silhouette): {elbow_avg_silhouette}')
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
 
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':
-                 [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-                 'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(X_scaled,kmeans_silhouette.labels_)
-    best_clf = grid.best_estimator_
-    best = best_clf
+    # tree = DecisionTreeClassifier()
+    # tree_para = {'criterion':['entropy','gini'],'max_depth':
+    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+    #              'min_samples_leaf':[1,2,3,4,5]}
+    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    # grid.fit(X_scaled,kmeans_silhouette.labels_)
+    # best_clf = grid.best_estimator_
+    # best = best_clf
 
-    # Exibir resultados do GridSearchCV
-    best_params = grid.best_params_
-    best_score = grid.best_score_
+    # # Exibir resultados do GridSearchCV
+    # best_params = grid.best_params_
+    # best_score = grid.best_score_
     
-    print(f'Best parameters found: {best_params}')
-    print(f'Best score found: {best_score}')
+    # print(f'Best parameters found: {best_params}')
+    # print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
@@ -414,7 +432,7 @@ def dashboard_um_console():
     print(f'Report: {report}')
     
     #Gera arvore de decisao
-    plt.figure(figsize=(100, 100))
+    plt.figure(figsize=(14, 8))
     plot_tree(tree, filled=True, fontsize=16, proportion=True)
     plt.subplots_adjust(wspace=0.8, hspace=0.8)
     plt.title("Decision Tree")
@@ -442,11 +460,24 @@ def dashboard_um_console():
     plt.savefig('static/graficos/new/um/df_decision_tree_poda.png')  # Salvando o gráfico
     plt.close()
 
-    # Relatório de clusters
-    report_df = cluster_report(pd.DataFrame(X_scaled, columns=df.columns), kmeans_silhouette.labels_)
+    # Relatório de clusters sem poda
+    report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df.columns), kmeans_silhouette.labels_)
+    # Relatório de clusters com poda
+    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df.columns), kmeans_silhouette.labels_, use_pruning=True)
 
-    # Imprimir relatório no console
-    print_cluster_report(report_df)
+    # Imprimir relatórios no console
+    print("Relatório sem poda:")
+    print_cluster_report(report_df_no_pruning)
+
+    print("\nRelatório com poda:")
+    print_cluster_report(report_df_pruning)
+
+    # Plotagem das regiões de decisão usando plot_decision_regions
+    plt.figure(figsize=(10, 8))
+    plot_decision_regions(X_scaled, kmeans_silhouette.labels_, clf=kmeans_silhouette, legend=2)
+    plt.title('Regiões de Decisão KMeans (Silhouette)')
+    plt.savefig('static/graficos/new/um/decision_regions_silhouette.png')
+    plt.close()
 
     return "RESULTADO"
 
