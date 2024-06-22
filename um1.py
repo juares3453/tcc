@@ -19,6 +19,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_predict
 from mlxtend.plotting import plot_decision_regions
+from sklearn.preprocessing import OneHotEncoder
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -67,7 +68,7 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=4, min_samples_leaf=1, use_pruning=False):
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=40, min_samples_leaf=2, use_pruning=False):
     if use_pruning:
         X_train, X_test, y_train, y_test = train_test_split(data, clusters, test_size=0.3, random_state=42)
         tree = DecisionTreeClassifier(random_state=42)
@@ -131,30 +132,25 @@ def dashboard_um_console():
     # df = df.drop(columns=['Ano', 'Mes', 'Dia'])
 
     # Codificação de Variáveis Categóricas
-    label_encoder = LabelEncoder()
-    df['Filial'] = label_encoder.fit_transform(df['Filial'])
 
-    # Tratamento de Outliers
-    # Q1 = df[['km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
-    #     'volumes_entregues']].quantile(0.25)
-    # Q3 = df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
-    #     'volumes_entregues']].quantile(0.75)
-    # IQR = Q3 - Q1
-    # df = df[~((df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
-    #     'volumes_entregues']] < (Q1 - 1.5 * IQR)) 
-    # | (df[['km_rodado', 'tempo_total', 'capacidade', 'frete_total', 'frete_entregue', 'peso_total', 'peso_entregue', 'volumes_total',  
-    #     'volumes_entregues']] > (Q3 + 1.5 * IQR))).any(axis=1)]
+    # Initialize OneHotEncoder
+    encoder = OneHotEncoder(sparse_output=False)
+
+    # Fit and transform the data
+    one_hot_encoded = encoder.fit_transform(df[['Filial']])
+
+    # Convert the result to a DataFrame for better readability
+    one_hot_encoded_df = pd.DataFrame(one_hot_encoded, columns=encoder.get_feature_names_out(['Filial']))
+    df = pd.concat([df, one_hot_encoded_df], axis=1)
+
+    print(df)
+
+    # Remoção de Colunas Desnecessárias
+    df = df.drop(columns=['Filial'])
 
     # Normalização e Padronização
     scaler = MinMaxScaler()
-    df[['Dia', 'Mes', 'Ano','volumes_total',  
-        'volumes_entregues', 'Filial', 'km_rodado', 'tempo_total',  'capacidade', 'frete_total','frete_entregue', 'peso_total', 
-        'peso_entregue', 'conf_carregamento', 'conf_entrega', 'auxiliares', 'entregas_total', 'entregas_realizadas']] = scaler.fit_transform(df[['Dia', 'Mes', 'Ano', 'volumes_total', 
-        'volumes_entregues', 'Filial', 'km_rodado', 'tempo_total', 'capacidade', 'frete_total','frete_entregue', 'peso_total', 'peso_entregue', 
-                               'conf_carregamento', 'conf_entrega', 'auxiliares', 'entregas_total', 'entregas_realizadas']])
-
-    # # Remoção de Colunas Desnecessárias
-    # df = df.drop(columns=['data'])
+    df[['km_rodado', 'frete_total']] = scaler.fit_transform(df[['km_rodado', 'frete_total']])
 
     # # Verificação de Duplicatas
     # df.drop_duplicates(inplace=True)
@@ -189,29 +185,6 @@ def dashboard_um_console():
     # plt.savefig('static/graficos/new/um/heatmap_correlacao_um1.png')  # Salvar o heatmap como um arquivo de imagem
     # plt.show()
 
-    # stat, p = shapiro(df['frete_total'])
-    # print(f'Statistics={stat}, p={p}')
-
-    # Adiciona 1 para evitar problemas com valores zero
-    # df['boxcox_frete_total'], _ = boxcox(df['frete_total'] + 1)
-    # df['boxcox_frete_entregue'], _ = boxcox(df['frete_entregue'] + 1)
-    # df['boxcox_peso_total'], _ = boxcox(df['peso_total'] + 1)
-    # df['boxcox_peso_entregue'], _ = boxcox(df['peso_entregue'] + 1)
-
-    # Tratamento de Outliers usando Z-score
-    # z_scores = np.abs(stats.zscore(df[['frete_total', 'frete_entregue', 'peso_total', 'peso_entregue']]))
-    # df_filtered_zscore = df[(z_scores < 3).all(axis=1)]
-
-    # # Visualização com Boxplot
-    # plt.figure(figsize=(16, 10))
-    # df.boxplot()
-    # plt.tight_layout()
-    # plt.xticks(rotation=45, ha='right')  # Rotaciona 45 graus e alinha à direita
-    # plt.gcf().subplots_adjust(bottom=0.2, top=0.9)
-    # plt.title('Boxplot para Identificação de Outliers')
-    # plt.savefig('static/graficos/new/um/boxplot_outliers.png')
-    # plt.show()
-
     #Histograma
     # plt.figure(figsize=(12, 8))
     # df[['Dia', 'Mes', 'Ano', 'Filial', 'conf_carregamento', 'conf_entrega', 'tempo_total', 'km_rodado', 'auxiliares', 'capacidade', 'entregas_total', 'entregas_realizadas', 'volumes_total', 'volumes_entregues',
@@ -219,85 +192,6 @@ def dashboard_um_console():
     # plt.tight_layout()
     # plt.savefig('static/graficos/new/um/histogramas_antigo_um1.png')  # Salvar o histograma como um arquivo de imagem
     # plt.show()
-
-    # # Histograma  
-    # plt.figure(figsize=(12, 8))
-    # sns.histplot(df['frete_total', 'frete_entregue', 'peso_total', 'peso_entregue'], kde=True, alpha=0.3)
-    # plt.tight_layout()
-    # plt.savefig('static/graficos/new/um/histogramas_frete_um1.png')  # Salvar o histograma como um arquivo de imagem
-    # plt.show()
-
-#    # Distribuição do frete_total
-#     plt.figure(figsize=(12, 6))
-#     sns.histplot(df['frete_total'], kde=True, bins=50)
-#     plt.title('Distribuição do Frete Total')
-#     plt.xlabel('Frete Total')
-#     plt.ylabel('Frequência')
-#     plt.savefig('static/graficos/new/um/frete_total_um1.png') 
-#     plt.close()
-
-    # # Distribuição do frete_entregue
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['frete_entregue'], kde=True, bins=50)
-    # plt.title('Distribuição do Frete Entregue')
-    # plt.xlabel('Frete Entregue')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/frete_entregue_um1.png') 
-    # plt.close()
- 
-    # Distribuição do peso_total
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['peso_total'], kde=True, bins=50)
-    # plt.title('Distribuição do Peso Total')
-    # plt.xlabel('Peso Total')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/peso_total_um1.png') 
-    # plt.close()
-
-    # # Distribuição do peso_entregue
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['peso_entregue'], kde=True, bins=50)
-    # plt.title('Distribuição do Peso Entregue')
-    # plt.xlabel('Peso Entregue')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/peso_entregue_um1.png') 
-    # plt.close()
-
-    # # Distribuição do km_rodado
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['km_rodado'], kde=True, bins=50)
-    # plt.title('Distribuição do Km Rodado')
-    # plt.xlabel('Km Rodado')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/km_rodado_um1.png') 
-    # plt.close()
-
-    # # Distribuição do tempo_total
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['tempo_total'], kde=True, bins=50)
-    # plt.title('Distribuição do Tempo Total')
-    # plt.xlabel('Tempo Total')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/tempo_total_um1.png') 
-    # plt.close()
-    
-    # # Distribuição da capacidade
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['capacidade'], kde=True, bins=50)
-    # plt.title('Distribuição da Capacidade')
-    # plt.xlabel('Capacidade')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/capacidade_um1.png') 
-    # plt.close()
-
-    # # Distribuição da capacidade
-    # plt.figure(figsize=(12, 6))
-    # sns.histplot(df['auxiliares'], kde=True, bins=50)
-    # plt.title('Distribuição da Auxiliares')
-    # plt.xlabel('Auxiliares')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/um/auxiliares_um1.png') 
-    # plt.close()
 
     # Aplicação do KMeans e Determinação do Número Ideal de Clusters
     X_scaled = df.copy()
@@ -313,7 +207,7 @@ def dashboard_um_console():
         inertia.append(kmeans.inertia_)
 
     optimal_k_silhouette = K_range[np.argmax(silhouette_scores)]
-    optimal_k_elbow = 4#K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
+    optimal_k_elbow = K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
 
     # Clustering com Silhouette
     kmeans_silhouette = KMeans(n_clusters=optimal_k_silhouette, random_state=42)
@@ -384,7 +278,9 @@ def dashboard_um_console():
 
     # # Exibir resultados do GridSearchCV
     # best_params = grid.best_params_
-    # best_score = grid.best_score_
+     # print(f'Best parameters found: {best_params}')
+    # print(f'Best score found: {best_score}')
+# best_score = grid.best_score_
     
     # print(f'Best parameters found: {best_params}')
     # print(f'Best score found: {best_score}')
@@ -393,7 +289,7 @@ def dashboard_um_console():
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=40, min_samples_leaf=2)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
@@ -439,45 +335,23 @@ def dashboard_um_console():
     plt.savefig('static/graficos/new/um/df_decision_tree.png')  # Salvando o gráfico
     plt.close()
 
-    path = tree.cost_complexity_pruning_path(X_train, y_train)
-    ccp_alphas, impurities = path.ccp_alphas, path.impurities
-
-    trees = []
-    for ccp_alpha in ccp_alphas:
-        tree = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
-        tree.fit(X_train, y_train)
-        trees.append(tree)
-
-    train_scores = [tree.score(X_train, y_train) for tree in trees]
-    test_scores = [tree.score(X_test, y_test) for tree in trees]
-
-    best_alpha_index = np.argmax(test_scores)
-    best_tree = trees[best_alpha_index]
-
-    plt.figure(figsize=(40, 30))
-    plot_tree(best_tree, filled=True, fontsize=12, proportion=True)
-    plt.subplots_adjust(wspace=0.8, hspace=0.8)
-    plt.savefig('static/graficos/new/um/df_decision_tree_poda.png')  # Salvando o gráfico
-    plt.close()
-
     # Relatório de clusters sem poda
     report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df.columns), kmeans_silhouette.labels_)
-    # Relatório de clusters com poda
-    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df.columns), kmeans_silhouette.labels_, use_pruning=True)
 
     # Imprimir relatórios no console
     print("Relatório sem poda:")
-    print_cluster_report(report_df_no_pruning)
-
-    print("\nRelatório com poda:")
-    print_cluster_report(report_df_pruning)
-
-    # Plotagem das regiões de decisão usando plot_decision_regions
-    plt.figure(figsize=(10, 8))
-    plot_decision_regions(X_scaled, kmeans_silhouette.labels_, clf=kmeans_silhouette, legend=2)
-    plt.title('Regiões de Decisão KMeans (Silhouette)')
-    plt.savefig('static/graficos/new/um/decision_regions_silhouette.png')
-    plt.close()
+    try:
+        # Verificar se o DataFrame não é None e não está vazio
+        if report_df_no_pruning is None or report_df_no_pruning.empty:
+            print("report_df_no_pruning is empty or None")
+        else:
+            # Chamar a função para imprimir o relatório do cluster
+            print_cluster_report(report_df_no_pruning)
+    except Exception as e:
+        # Capturar e imprimir a exceção
+        print(f"An error occurred: {e}")
+        import traceback
+        traceback.print_exc()
 
     return "RESULTADO"
 
