@@ -21,6 +21,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_predict
 from mlxtend.plotting import plot_decision_regions
+from sklearn.preprocessing import OneHotEncoder
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -114,60 +115,29 @@ def gerar_graficos():
     # Substituição de vírgulas por pontos na coluna 'VlCusto'
     df2['VlCusto'] = df2['VlCusto'].str.replace(',', '.')
 
-    # Conversão de colunas numéricas para tipos numéricos, tratando erros
-    colunas_categoricas = ['DsLocal', 'tp_ocor',  'Situacao', 'dsocorrencia', 'CLIENTE']
-   
-    # Codificação de Variáveis Categóricas
-    label_encoder = LabelEncoder()
-    for coluna in colunas_categoricas:
-        df2[coluna] = label_encoder.fit_transform(df2[coluna].astype(str))
-
-    # df2[colunas_categoricas] = imputer_cat.fit_transform(df2[colunas_categoricas])
-
-     # Conversão de Tipos de Dados
-    # df2['anocte'] = df2['anocte'].astype(int)
-    # df2['mescte'] = df2['mescte'].astype(int)
-    # df2['dtcte'] = df2['dtcte'].astype(int)
-    # df2['anoemissao'] = df2['anoemissao'].astype(int)
-    # df2['mesemissao'] = df2['mesemissao'].astype(int)
-    # df2['dtemissao'] = df2['dtemissao'].astype(int)
-    # df2['anoocor'] = df2['anoocor'].astype(int)
-    # df2['mesocor'] = df2['mesocor'].astype(int)
-    # df2['dtocor'] = df2['dtocor'].astype(int)
-    # df2['anobaixa'] = df2['anobaixa'].astype(int)
-    # df2['mesbaixa'] = df2['mesbaixa'].astype(int)
-    # df2['dtbaixa'] = df2['dtbaixa'].astype(int)
-
-    # # Combinação de colunas de datas
-    # df2['data_cte'] = pd.to_datetime(df2[['anocte', 'mescte', 'dtcte']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-    # df2['data_emissao_bo'] = pd.to_datetime(df2[['anoemissao', 'mesemissao', 'dtemissao']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-    # df2['data_ocor'] = pd.to_datetime(df2[['anoocor', 'mesocor', 'dtocor']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-    # df2['data_baixa'] = pd.to_datetime(df2[['anobaixa', 'mesbaixa', 'dtbaixa']].astype(str).agg('-'.join, axis=1), format='%Y-%m-%d', errors='coerce')
-
-    # Exclusão de colunas de dia, mês e ano originais
-    # df2 = df2.drop(columns=[ 'dtemissao', 'dtocor', 'mesocor', 'anoocor', 
-    #                         'dtbaixa', 'mesbaixa', 'anobaixa', 'dtcte', 'mescte', 'anocte', 'data_cte', 'data_emissao_bo', 'data_ocor', 'data_baixa', 'mesemissao', 'anoemissao', 'diasemissao'])
-
     # Remoção de duplicatas
     df2.drop_duplicates(inplace=True)
 
     # Remover valores nulos
     df2.dropna(inplace=True)
 
-    # # Tratamento de Outliers usando Z-score
-    # z_scores = np.abs(stats.zscore(df2[['diasresolucao', 'NrBo', 'dsocorrencia', 'CLIENTE', 'DsLocal', 'tp_ocor', 'VlCusto', 'Situacao', 'Resp']]))
-    # df2 = df2[(z_scores < 3).all(axis=1)]
+    # Initialize OneHotEncoder
+    encoder = OneHotEncoder(sparse_output=False)
+
+    # Fit and transform the data
+    one_hot_encoded = encoder.fit_transform(df2[['DsLocal', 'tp_ocor',  'Situacao', 'CLIENTE', 'dsocorrencia']])
+
+    # Convert the result to a DataFrame for better readability
+    one_hot_encoded_df2 = pd.DataFrame(one_hot_encoded, columns=encoder.get_feature_names_out(['DsLocal', 'tp_ocor',  'Situacao', 'CLIENTE', 'dsocorrencia']))
+    df2 = pd.concat([df2, one_hot_encoded_df2], axis=1)
+    df2 = df2.drop(columns=['DsLocal', 'tp_ocor',  'Situacao', 'CLIENTE', 'dsocorrencia'])
+
+    print(df2)
 
     # # Normalização dos dados
-    scaler = MinMaxScaler()
-    # colunas_para_normalizar = ['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']
-    df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']] = scaler.fit_transform(df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']])
-
-    # # Análise e tratamento de outliers
-    # Q1 = df2['VlCusto'].quantile(0.25)
-    # Q3 = df2['VlCusto'].quantile(0.75)
-    # IQR = Q3 - Q1
-    # df2 = df2[~((df2['VlCusto'] < (Q1 - 1.5 * IQR)) | (df2['VlCusto'] > (Q3 + 1.5 * IQR)))]
+    # scaler = MinMaxScaler()
+    # # colunas_para_normalizar = ['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']
+    # df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']] = scaler.fit_transform(df2[['Resp', 'CLIENTE', 'dtcte', 'mescte', 'anocte', 'dtemissao', 'mesemissao', 'anoemissao', 'dtocor', 'mesocor', 'anoocor', 'dtbaixa', 'mesbaixa', 'anobaixa', 'diasemissao' ,'diasresolucao', 'DsLocal', 'tp_ocor', 'NrBo', 'dsocorrencia', 'VlCusto']])
 
     # Impressão das informações no console
     # print("Shape do DataFrame:")
@@ -206,113 +176,6 @@ def gerar_graficos():
     # plt.savefig('static/graficos/new/tres/histogramas_tres1.png')  # Salvar o histograma como um arquivo de imagem
     # plt.show()
 
-    # # Histograma de VlCusto 
-    # plt.figure(figsize=(10, 6)) 
-    # sns.histplot(df2['VlCusto'], bins=50, kde=True) 
-    # plt.title('Distribuição de VlCusto') 
-    # plt.xlabel('VlCusto') 
-    # plt.ylabel('Frequência') 
-    # plt.savefig('static/graficos/new/tres/histograma_vlcusto_tres1.png')  # Salvar o histograma como um arquivo de imagem
-    # plt.show()
-
-    # # Gráfico de barras de DsLocal
-    # plt.figure(figsize=(14, 8))
-    # sns.countplot(data=df2, x='DsLocal', order=df2['DsLocal'].value_counts().index)
-    # plt.title('Contagem de Ocorrências por Local')
-    # plt.xlabel('Local')
-    # plt.ylabel('Contagem')
-    # plt.xticks(rotation=90)
-    # plt.savefig('static/graficos/new/tres/contagem_DsLocal_tres1.png')  # Salvar o histograma como um arquivo de imagem
-    # plt.show()
-
-    # # Boxplot de VlCusto por tp_ocor
-    # plt.figure(figsize=(14, 8))
-    # sns.boxplot(data=df2, x='tp_ocor', y='VlCusto')
-    # plt.title('Dispersão de VlCusto por Tipo de Ocorrência')
-    # plt.xlabel('Tipo de Ocorrência')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/tres/ocor_vlcusto_tres1.png')
-    # plt.show()
-   
-    # # Boxplot
-    # plt.figure(figsize=(12, 6))
-    # sns.boxplot(data=df2[['VlCusto', 'NrBo']])
-    # plt.title('Boxplot de VlCusto e NrBo')
-    # plt.savefig('static/graficos/new/tres/boxplot_tres1.png')  # Salvar o boxplot como um arquivo de imagem
-    # plt.show()
-
-    # # Boxplot de VlCusto por tp_ocor
-    # plt.figure(figsize=(14, 8))
-    # sns.boxplot(data=df2, x='tp_ocor', y='VlCusto')
-    # plt.title('Dispersão de VlCusto por Tipo de Ocorrência')
-    # plt.xlabel('Tipo de Ocorrência')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/tres/boxplot_vlcusto_tpocor_tres1.png')  # Salvar o boxplot como um arquivo de imagem
-    # plt.show()
-
-    # # Gráfico de linha de número de ocorrências ao longo do tempo
-    # df2['mes_ano'] = df2['data_cte'].dt.to_period('M')
-    # ocorrencias_por_mes = df2.groupby('mes_ano').size()
-
-    # plt.figure(figsize=(14, 8))
-    # ocorrencias_por_mes.plot(kind='line')
-    # plt.title('Número de Ocorrências ao Longo do Tempo')
-    # plt.xlabel('Mês/Ano')
-    # plt.ylabel('Número de Ocorrências')
-    # plt.xticks(rotation=45)
-    # plt.savefig('static/graficos/new/tres/ocorrencias_mes_tres1.png')  # Salvar o boxplot como um arquivo de imagem
-    # plt.show()
-
-    # # Boxplot de VlCusto por mesemissao
-    # plt.figure(figsize=(14, 8))
-    # sns.boxplot(data=df2, x='mesemissao', y='VlCusto')
-    # plt.title('Dispersão de VlCusto por Mês de Emissão')
-    # plt.xlabel('Mês de Emissão')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/tres/vlcusto_mes_tres1.png')  # Salvar o boxplot como um arquivo de imagem
-    # plt.show()
-
-    # # Boxplot de VlCusto por anoemissao
-    # plt.figure(figsize=(14, 8))
-    # sns.boxplot(data=df2, x='anoemissao', y='VlCusto')
-    # plt.title('Dispersão de VlCusto por Ano de Emissão')
-    # plt.xlabel('Ano de Emissão')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/tres/vlcusto_ano_tres1.png')  # Salvar o boxplot como um arquivo de imagem
-    # plt.show()
-
-    # # Remoção de Colunas Desnecessárias
-    # df2 = df2.drop(columns=['mes_ano'])
-
-    # # Heatmap de Correlação
-    # plt.figure(figsize=(12, 8))
-    # correlation_matrix = df2.corr()
-    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-    # plt.title('Heatmap de Correlação')
-    # plt.savefig('static/graficos/new/tres/heatmap_correlacao_tres1.png')  # Salvar o heatmap como um arquivo de imagem
-    # plt.show()
-
-    # plt.figure(figsize=(12, 6))
-    # df2['tp_ocor'].value_counts().plot(kind='bar')
-    # plt.title('Frequência de tp_ocor')
-    # plt.savefig('static/graficos/new/tres/barras_tp_ocor_tres1.png')  # Salvar o gráfico de barras como um arquivo de imagem
-    # plt.show()
-
-    # plt.figure(figsize=(12, 6))
-    # df2['Situacao'].value_counts().plot(kind='bar')
-    # plt.title('Frequência de Situacao')
-    # plt.savefig('static/graficos/new/tres/barras_situacao_tres1.png')  # Salvar o gráfico de barras como um arquivo de imagem
-    # plt.show()
-
-    # # Scatter plot entre diasresolucao e VlCusto
-    # plt.figure(figsize=(10, 6))
-    # sns.scatterplot(data=df2, x='diasresolucao', y='VlCusto')
-    # plt.title('Relação entre Dias de Resolução e VlCusto')
-    # plt.xlabel('Dias de Resolução')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/tres/vlcusto_diasresol_tres1.png')
-    # plt.show()
-
     #Aplicação do KMeans e Determinação do Número Ideal de Clusters
     X_scaled = df2.copy()
     silhouette_scores = []
@@ -327,7 +190,7 @@ def gerar_graficos():
         inertia.append(kmeans.inertia_)
 
     optimal_k_silhouette = K_range[np.argmax(silhouette_scores)]
-    optimal_k_elbow = 3 #K_range[np.argmin(np.diff(inertia, 2)) + 1]  # Finding the elbow points
+    optimal_k_elbow = K_range[np.argmin(np.diff(inertia, 2)) + 1] 
 
     # Clustering com Silhouette
     kmeans_silhouette = KMeans(n_clusters=optimal_k_silhouette, random_state=42)
@@ -387,21 +250,21 @@ def gerar_graficos():
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
     
-    # tree = DecisionTreeClassifier()
-    # tree_para = {'criterion':['entropy','gini'],'max_depth':
-    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-    #              'min_samples_leaf':[1,2,3,4,5]}
-    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    # grid.fit(X_scaled,kmeans_silhouette.labels_)
-    # best_clf = grid.best_estimator_
-    # best = best_clf
+    tree = DecisionTreeClassifier()
+    tree_para = {'criterion':['entropy','gini'],'max_depth':
+                 [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+                 'min_samples_leaf':[1,2,3,4,5]}
+    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    grid.fit(X_scaled,kmeans_silhouette.labels_)
+    best_clf = grid.best_estimator_
+    best = best_clf
 
-    # # Exibir resultados do GridSearchCV
-    # best_params = grid.best_params_
-    # best_score = grid.best_score_
+    # Exibir resultados do GridSearchCV
+    best_params = grid.best_params_
+    best_score = grid.best_score_
     
-    # print(f'Best parameters found: {best_params}')
-    # print(f'Best score found: {best_score}')
+    print(f'Best parameters found: {best_params}')
+    print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_elbow.labels_,test_size=0.3,random_state=100)
@@ -453,45 +316,12 @@ def gerar_graficos():
     plt.savefig('static/graficos/new/tres/df_decision_tree.png')  # Salvando o gráfico
     plt.close()
 
-    path = tree.cost_complexity_pruning_path(X_train, y_train)
-    ccp_alphas, impurities = path.ccp_alphas, path.impurities
-
-    trees = []
-    for ccp_alpha in ccp_alphas:
-        tree = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
-        tree.fit(X_train, y_train)
-        trees.append(tree)
-
-    train_scores = [tree.score(X_train, y_train) for tree in trees]
-    test_scores = [tree.score(X_test, y_test) for tree in trees]
-
-    best_alpha_index = np.argmax(test_scores)
-    best_tree = trees[best_alpha_index]
-
-    plt.figure(figsize=(12, 8))
-    plot_tree(best_tree, filled=True, fontsize=12, proportion=True)
-    plt.subplots_adjust(wspace=0.8, hspace=0.8)
-    plt.savefig('static/graficos/new/tres/df_decision_tree_poda.png')  # Salvando o gráfico
-    plt.close()
-
     # Relatório de clusters sem poda
     report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_elbow.labels_)
-    # Relatório de clusters com poda
-    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df2.columns), kmeans_elbow.labels_, use_pruning=True)
 
     # Imprimir relatórios no console
     print("Relatório sem poda:")
     print_cluster_report(report_df_no_pruning)
-    # print("\nRelatório com poda:")
-    # print_cluster_report(report_df_pruning)
-
-    # Plotagem das regiões de decisão usando plot_decision_regions
-    plt.figure(figsize=(10, 8))
-    plot_decision_regions(X_pca, kmeans_elbow.labels_, clf=kmeans_elbow, legend=2)
-    plt.title('Regiões de Decisão KMeans (Elbow)')
-    plt.savefig('static/graficos/new/tres/decision_regions_elbow.png')
-    plt.close()
-
 
     return "Processamento concluído e informações exibidas no console."
 

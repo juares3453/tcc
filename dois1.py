@@ -22,6 +22,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_predict
 from mlxtend.plotting import plot_decision_regions
+from sklearn.preprocessing import OneHotEncoder
 
 mpl.use('Agg')
 mpl.rcParams['figure.max_open_warning'] = 50
@@ -65,7 +66,7 @@ def get_class_rules(tree: DecisionTreeClassifier, feature_names: list):
     tree_dfs()  # começa da raiz, node_id = 0
     return class_rules_dict
 
-def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=30, min_samples_leaf=1, use_pruning=False):
+def cluster_report(data: pd.DataFrame, clusters, criterion='entropy',  max_depth=4, min_samples_leaf=1, use_pruning=False):
     if use_pruning:
         X_train, X_test, y_train, y_test = train_test_split(data, clusters, test_size=0.3, random_state=42)
         tree = DecisionTreeClassifier(random_state=42)
@@ -119,24 +120,26 @@ def gerar_graficos():
     # Substituição de vírgulas por pontos na coluna 'VlCusto' e 'Lucro'
     df1['VlCusto'] = df1['VlCusto'].str.replace(',', '.')
     df1['Lucro'] = df1['Lucro'].str.replace(',', '.')
-    
+
+    # Initialize OneHotEncoder
+    encoder = OneHotEncoder(sparse_output=False)
+
+    # Fit and transform the data
+    one_hot_encoded = encoder.fit_transform(df1[['DsTpVeiculo', 'DsModelo']])
+
+    # Convert the result to a DataFrame for better readability
+    one_hot_encoded_df1 = pd.DataFrame(one_hot_encoded, columns=encoder.get_feature_names_out(['DsTpVeiculo', 'DsModelo']))
+    df1 = pd.concat([df1, one_hot_encoded_df1], axis=1)
+    df1 = df1.drop(columns=['DsTpVeiculo', 'DsModelo'])
+
+    #Normalização
+    scaler = MinMaxScaler()
+    df1[['Lucro', 'VlCusto', '%Lucro', '%CapacidadeEntr', '%CapacidadeCarre', 'FreteEx', 'km_rodado']] = scaler.fit_transform(df1[['Lucro', 'VlCusto', '%Lucro', '%CapacidadeEntr', '%CapacidadeCarre', 'FreteEx', 'km_rodado']])
+
     # Remover valores nulos
     df1.dropna(inplace=True)
 
-    # Codificação de Variáveis Categóricas
-    label_encoder = LabelEncoder()
-    df1['DsTpVeiculo'] = label_encoder.fit_transform(df1['DsTpVeiculo'])
-    df1['DsModelo'] = label_encoder.fit_transform(df1['DsModelo'])
-
-    # Normalização
-    scaler = MinMaxScaler()
-    df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
-       'NrAuxiliares', 'DsModelo', 'DsAnoFabricacao', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
-       'Lucro', '%Lucro']] = scaler.fit_transform(df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
-       'NrAuxiliares', 'DsModelo', 'DsAnoFabricacao', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
-       'Lucro', '%Lucro']])
-
-    # Informações após o tratamento
+    #Informações após o tratamento
     print("Shape do DataFrame:")
     print(df1.shape)
     print(" ")
@@ -149,99 +152,23 @@ def gerar_graficos():
     print("Primeiras linhas do DataFrame:")
     print(df1.head())
 
-    # # Heatmap de Correlação
-    # plt.figure(figsize=(14, 12))
-    # correlation_matrix = df1.corr()
-    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-    # plt.gcf().subplots_adjust(bottom=0.13, top=0.96)
-    # plt.title('Heatmap de Correlação')
-    # plt.savefig('static/graficos/new/dois/heatmap_correlacao_dois1.png')  # Salvar o heatmap como um arquivo de imagem
-    # plt.show()
+#     # # Heatmap de Correlação
+#     # plt.figure(figsize=(14, 12))
+#     # correlation_matrix = df1.corr()
+#     # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+#     # plt.gcf().subplots_adjust(bottom=0.13, top=0.96)
+#     # plt.title('Heatmap de Correlação')
+#     # plt.savefig('static/graficos/new/dois/heatmap_correlacao_dois1.png')  # Salvar o heatmap como um arquivo de imagem
+#     # plt.show()
 
-    # # Histograma
-    # plt.figure(figsize=(12, 8))
-    # df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
-    #    'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
-    #    'Lucro', '%Lucro']].hist(bins=20, figsize=(12, 8))
-    # plt.tight_layout()
-    # plt.savefig('static/graficos/new/dois/histogramas_dois1.png')  # Salvar o histograma como um arquivo de imagem
-    # plt.show()
-
-     # # Visualizações
-    # plt.figure(figsize=(10, 6))
-    # sns.histplot(df1['VlCusto'].dropna(), bins=50, kde=True)
-    # plt.title('Distribuição de VlCusto')
-    # plt.xlabel('VlCusto')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/dois/vlcusto_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(10, 6))
-    # sns.histplot(df1['Lucro'].dropna(), bins=50, kde=True)
-    # plt.title('Distribuição de Lucro')
-    # plt.xlabel('Lucro')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/dois/lucro_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(14, 8))
-    # sns.boxplot(data=df1, x='DsTpVeiculo', y='VlCusto')
-    # plt.title('Dispersão de VlCusto por Tipo de Veículo')
-    # plt.xlabel('Tipo de Veículo')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/dois/vlcusto_tpveiculo_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(14, 8))
-    # sns.boxplot(data=df1, x='DsTpVeiculo', y='Lucro')
-    # plt.title('Dispersão de Lucro por Tipo de Veículo')
-    # plt.xlabel('Tipo de Veículo')
-    # plt.ylabel('Lucro')
-    # plt.savefig('static/graficos/new/dois/dstpveiculo_lucro_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(14, 8))
-    # df1['mes_ano'] = df1['data'].dt.to_period('M')
-    # ocorrencias_por_mes = df1.groupby('mes_ano').size()
-    # ocorrencias_por_mes.plot(kind='line')
-    # plt.title('Número de Ocorrências ao Longo do Tempo')
-    # plt.xlabel('Mês/Ano')
-    # plt.ylabel('Número de Ocorrências')
-    # plt.xticks(rotation=45)
-    # plt.savefig('static/graficos/new/dois/entregas_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(12, 10))
-    # sns.heatmap(df1.corr(), annot=True, cmap='coolwarm', vmin=-1, vmax=1)
-    # plt.title('Heatmap de Correlações')
-    # plt.savefig('static/graficos/new/dois/corr_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(10, 6))
-    # sns.scatterplot(data=df1, x='km_rodado', y='VlCusto')
-    # plt.title('Relação entre Quilometragem Rodada e VlCusto')
-    # plt.xlabel('Quilometragem Rodada')
-    # plt.ylabel('VlCusto')
-    # plt.savefig('static/graficos/new/dois/kmrodado_custo_dois1.png') 
-    # plt.close()
-
-    # plt.figure(figsize=(10, 6))
-    # sns.countplot(data=df1, x='DsTpVeiculo')
-    # plt.title('Distribuição de Tipos de Veículo')
-    # plt.xlabel('Tipo de Veículo')
-    # plt.ylabel('Frequência')
-    # plt.savefig('static/graficos/new/dois/tpveiculo_dois1.png') 
-    # plt.close()
-
-    # # Scatter plot para visualizar concentração
-    # plt.figure(figsize=(10, 6))
-    # sns.scatterplot(data=df1, x='km_rodado', y='VlCusto', hue='DsTpVeiculo', palette='Set1')
-    # plt.title('Relação entre Quilometragem Rodada e VlCusto por Tipo de Veículo')
-    # plt.xlabel('Quilometragem Rodada')
-    # plt.ylabel('VlCusto')
-    # plt.legend(title='Tipo de Veículo')
-    # plt.savefig('static/graficos/new/dois/tpveiculo_km_vlcusto_dois1.png') 
-    # plt.close()
+#     # # Histograma
+#     # plt.figure(figsize=(12, 8))
+#     # df1[['Dia', 'Mes', 'Ano', 'DsTpVeiculo', 'VlCusto', 'km_rodado', 'VlCapacVeic',
+#     #    'NrAuxiliares', '%CapacidadeCarre', '%CapacidadeEntr', '%Entregas', '%VolumesEntr', '%PesoEntr', '%FreteCobrado', 'FreteEx',
+#     #    'Lucro', '%Lucro']].hist(bins=20, figsize=(12, 8))
+#     # plt.tight_layout()
+#     # plt.savefig('static/graficos/new/dois/histogramas_dois1.png')  # Salvar o histograma como um arquivo de imagem
+#     # plt.show()
 
     # Aplicação do KMeans e Determinação do Número Ideal de Clusters
     X_scaled = df1.copy()
@@ -257,7 +184,7 @@ def gerar_graficos():
         inertia.append(kmeans.inertia_)
 
     optimal_k_silhouette = K_range[np.argmax(silhouette_scores)]
-    optimal_k_elbow = 4  # Finding the elbow points
+    optimal_k_elbow = K_range[np.argmin(np.diff(inertia, 2)) + 1]
 
     # Clustering com Silhouette
     kmeans_silhouette = KMeans(n_clusters=optimal_k_silhouette, random_state=42)
@@ -315,27 +242,27 @@ def gerar_graficos():
     print(f'Davies-Bouldin Score (Silhouette): {davies_bouldin_silhouette}')
     print(f'Davies-Bouldin Score (Elbow): {davies_bouldin_elbow}')
 
-    tree = DecisionTreeClassifier()
-    tree_para = {'criterion':['entropy','gini'],'max_depth':
-                 [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
-                 'min_samples_leaf':[1,2,3,4,5]}
-    grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
-    grid.fit(X_scaled,kmeans_silhouette.labels_)
-    best_clf = grid.best_estimator_
-    best = best_clf
+    # tree = DecisionTreeClassifier()
+    # tree_para = {'criterion':['entropy','gini'],'max_depth':
+    #              [4,5,6,7,8,9,10,11,12,15,20,30,40,50,70,90,120,150],
+    #              'min_samples_leaf':[1,2,3,4,5]}
+    # grid = GridSearchCV(tree, tree_para,verbose=5, cv=10)
+    # grid.fit(X_scaled,kmeans_silhouette.labels_)
+    # best_clf = grid.best_estimator_
+    # best = best_clf
 
-    # Exibir resultados do GridSearchCV
-    best_params = grid.best_params_
-    best_score = grid.best_score_
+    # # Exibir resultados do GridSearchCV
+    # best_params = grid.best_params_
+    # best_score = grid.best_score_
     
-    print(f'Best parameters found: {best_params}')
-    print(f'Best score found: {best_score}')
+    # print(f'Best parameters found: {best_params}')
+    # print(f'Best score found: {best_score}')
 
     # Criação de conjuntos de treino e teste
     X_train, X_test, y_train, y_test = train_test_split(X_scaled,kmeans_silhouette.labels_,test_size=0.3,random_state=100)
     train = (X_train.shape, y_train.shape) # shape - mostra quantas linhas e colunas for+am geradas
     test = (X_test.shape, y_test.shape)
-    tree = DecisionTreeClassifier(criterion='entropy', max_depth=30, min_samples_leaf=1)
+    tree = DecisionTreeClassifier(criterion='entropy', max_depth=4, min_samples_leaf=1)
     tree.fit(X_train,y_train)
     predictions_test = tree.predict(X_test)
     accuracy_test = accuracy_score(y_test,predictions_test)*100
@@ -381,44 +308,12 @@ def gerar_graficos():
     plt.savefig('static/graficos/new/dois/df_decision_tree.png')  # Salvando o gráfico
     plt.close()
 
-    path = tree.cost_complexity_pruning_path(X_train, y_train)
-    ccp_alphas, impurities = path.ccp_alphas, path.impurities
-
-    trees = []
-    for ccp_alpha in ccp_alphas:
-        tree = DecisionTreeClassifier(random_state=42, ccp_alpha=ccp_alpha)
-        tree.fit(X_train, y_train)
-        trees.append(tree)
-
-    train_scores = [tree.score(X_train, y_train) for tree in trees]
-    test_scores = [tree.score(X_test, y_test) for tree in trees]
-
-    best_alpha_index = np.argmax(test_scores)
-    best_tree = trees[best_alpha_index]
-
-    plt.figure(figsize=(12, 8))
-    plot_tree(best_tree, filled=True, fontsize=12, proportion=True)
-    plt.subplots_adjust(wspace=0.8, hspace=0.8)
-    plt.savefig('static/graficos/new/dois/df_decision_tree_poda.png')  # Salvando o gráfico
-    plt.close()
-
-   # Relatório de clusters sem poda
+    # Relatório de clusters sem poda
     report_df_no_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df1.columns), kmeans_silhouette.labels_)
-    # Relatório de clusters com poda
-    report_df_pruning = cluster_report(pd.DataFrame(X_scaled, columns=df1.columns), kmeans_silhouette.labels_, use_pruning=True)
 
     # Imprimir relatórios no console
     print("Relatório sem poda:")
     print_cluster_report(report_df_no_pruning)
-    print("\nRelatório com poda:")
-    print_cluster_report(report_df_pruning)
-
-    # Plotagem das regiões de decisão usando plot_decision_regions
-    plt.figure(figsize=(10, 8))
-    plot_decision_regions(X_pca, kmeans_silhouette.labels_, clf=kmeans_silhouette, legend=2)
-    plt.title('Regiões de Decisão KMeans (Silhouette)')
-    plt.savefig('static/graficos/new/dois/decision_regions_silhouette.png')
-    plt.close()
 
     return "Processamento concluído e informações exibidas no console."
 
